@@ -1,0 +1,13 @@
+{
+  "include": ["./src/**/*"],
+  "compilerOptions": {
+    "strict": false,
+    "declaration": true, // generates declaration files
+    "esModuleInterop": true,
+    "noImplicitAny": false,
+    "module": "es6",
+    "target": "es2017",
+    "moduleResolution": "node",
+    "declarationDir": "dist",
+  }
+}
