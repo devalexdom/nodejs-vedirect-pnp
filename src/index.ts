@@ -1,7 +1,7 @@
 declare const Buffer; //To silence TypeScript bug? in Buffer.from(-->[0x0d, 0x0a]<--) Maybe I gonna need some help here...
 
 import { exec } from "child_process";
-import { VEDirectParser } from "./ve-direct-parser";
+import { VEDirectParser } from "./ve-direct";
 import SerialPort from "serialport";
 import { VEDirectPnP_MPPTDeviceData, VEDirectPnP_UnsupportedDeviceData } from "./deviceData";
 
@@ -60,7 +60,7 @@ export default class VEDirectPnP {
     const devicesDataMapped = {};
     for (const deviceSN in devicesData) {
       const deviceData = devicesData[deviceSN];
-      if (typeof deviceData["MPPT"] === "number") {
+      if (!isNaN(deviceData["MPPT"])) {
         devicesDataMapped[deviceSN] = new VEDirectPnP_MPPTDeviceData(deviceData);
       }
       else {
@@ -90,19 +90,19 @@ export default class VEDirectPnP {
     return this.mapVictronDeviceData(this.devicesVEDirectData);
   }
 
-  updateVEDirectDataDeviceData(VEDirectData) {
-    const serialNumber = this.getVictronDeviceSN(VEDirectData);
+  updateVEDirectDataDeviceData(VEDirectRawData) {
+    const serialNumber = this.getVictronDeviceSN(VEDirectRawData);
     if (!serialNumber) {
       this.emitEvent("error", {
         message: "Device does not have a valid serial number.",
-        dataDump: VEDirectData
+        dataDump: VEDirectRawData
       });
       return;
     }
     this.devicesVEDirectData = {
       ...this.devicesVEDirectData,
       [serialNumber]: {
-        ...VEDirectData, ...{ dataTimeStamp: new Date() }
+        ...VEDirectRawData, ...{ dataTimeStamp: new Date().getTime() }
       }
     };
   }
@@ -171,11 +171,11 @@ export default class VEDirectPnP {
       const VEDParser = new VEDirectParser();
       port.pipe(delimiter).pipe(VEDParser);
 
-      VEDParser.on("data", (data) => {
-        if (!this.devicesVEDirectData[this.getVictronDeviceSN(data)]) {
+      VEDParser.on("data", (VEDirectRawData) => {
+        if (!this.devicesVEDirectData[this.getVictronDeviceSN(VEDirectRawData)]) {
           resolve(true);
         }
-        this.updateVEDirectDataDeviceData(data);
+        this.updateVEDirectDataDeviceData(VEDirectRawData);
       });
     });
   }
