@@ -1,9 +1,12 @@
 # victron-vedirect-pnp
 A plug and play way to easily read data from your connected Victron VE.Direct devices
 
+
 ## Usage
 1. Connect your Victron device using the VE.Direct USB interface to your Raspberry or Linux x86-64 based computer
-2. npm i @devalexdom/victron-vedirect-pnp
+
+2. `npm i @devalexdom/victron-vedirect-pnp`
+
 3. Run:
 ```javascript
 const VEDirectPnP = require("@devalexdom/victron-vedirect-pnp");
@@ -32,9 +35,12 @@ dataReader.on("data-ready", () => {
     */
 });
 ```
+
 4. And start making great green things 🌱🌍!
 
-
+---
+---
+---
 
 ## A more detailed usage
 
