@@ -29,7 +29,7 @@ export default class VEDirectPnP {
     init(): void;
     stop(): void;
     getDevicesData(): {};
-    updateVEDirectDataDeviceData(VEDirectData: any): void;
+    updateVEDirectDataDeviceData(VEDirectRawData: any): void;
     getVEDirectDevicesAvailable(): Promise<string | string[]>;
     initVEDirectDataFlowFromAllDevices(): Promise<unknown>;
     initDataFlowFromVEDirect(devicePath: any): Promise<unknown>;
