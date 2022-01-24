@@ -19,18 +19,19 @@ dataReader.on("data-ready", () => {
         "deviceSN": "HQ21340EFYE",
         "deviceType": "MPPT",
         "deviceFirmwareVersion": 1.59,
-        "batteryVoltage": 25.47,
-        "batteryCurrent": 0,
-        "statusMessage": "Off",
+        "batteryVoltage": 28.32,
+        "batteryCurrent": 21.2,
+        "statusMessage": "Absorption",
         "errorMessage": "",
-        "mpptMessage": "Off",
-        "maximumPowerToday": 0,
+        "mpptMessage": "Voltage or current limited",
+        "maximumPowerToday": 909,
         "maximumPowerYesterday": 835,
-        "totalEnergyProduced": 128.42,
-        "energyProducedToday": 0,
+        "totalEnergyProduced": 130.4,
+        "energyProducedToday": 1.98,
         "energyProducedYesterday": 3.55,
-        "photovoltaicPower": 0,
-        "photovoltaicVoltage": 0.15,
+        "photovoltaicPower": 608,
+        "photovoltaicVoltage": 37.32,
+        "photovoltaicCurrent": 16.291532690246516,
         ...
     */
 });
@@ -93,7 +94,7 @@ dataReader.on("data-ready", () => {
                 H22: 363,
                 H23: 837,
                 HSDS: 142,
-                dataTimeStamp: 2022-01-23T21:11:06.910Z
+                dataTimeStamp: 1643058077196
             }
         }
         */
@@ -114,7 +115,7 @@ dataReader.on("error", (error) => {
 4. Kill the bugs
 
 ### Related
-VE.Direct protocol [documentation](https://www.atakale.com.tr/image/catalog/urunler/charger/victron/pdf/victron_energy_haberlesme_protokolu_VE.Direct-Protocol-3.29.pdf).
+VE.Direct protocol 3.29 [documentation](docs/victron_energy_VE.Direct-Protocol-3.29.pdf).
 
 ### Credits
-VE.Direct parser [@bencevans/ve.direct](https://github.com/bencevans/ve.direct).
+VE.Direct parser using Stream interface [@bencevans/ve.direct](https://github.com/bencevans/ve.direct).
