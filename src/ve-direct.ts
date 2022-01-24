@@ -1,6 +1,7 @@
 import { Transform } from "stream";
 
 export class VEDirectData {
+  //Protocol version 3.29 (20 July 2020)
   V: number;
   V2?: number;
   V3?: number;

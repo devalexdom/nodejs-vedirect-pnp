@@ -3,7 +3,7 @@ declare const Buffer; //To silence TypeScript bug? in Buffer.from(-->[0x0d, 0x0a
 import { exec } from "child_process";
 import { VEDirectParser } from "./ve-direct";
 import SerialPort from "serialport";
-import { VEDirectPnP_MPPTDeviceData, VEDirectPnP_UnsupportedDeviceData } from "./deviceData";
+import { VEDirectPnP_MPPTDeviceData, VEDirectPnP_UnsupportedDeviceData } from "./device-data";
 
 
 interface IVEDirectPnP_Parameters {

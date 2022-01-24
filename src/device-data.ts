@@ -1,4 +1,4 @@
-import deviceName from "./data/deviceName";
+import deviceName from "./data/device-name";
 import { StatusMessage, ErrorMessage, MPPTMessage, DeviceType, OffReasonMessage } from "./data/device-data-enum";
 import { VEDirectData } from "./ve-direct";
 
