@@ -296,7 +296,7 @@ class VEDirectPnP {
 
   on(event, callback) {
     const listener = (eventEmmited, eventData) => {
-      if (event === eventEmmited) {
+      if (event === eventEmmited || event === "all") {
         callback(eventData);
       }
     };
@@ -306,7 +306,9 @@ class VEDirectPnP {
 
   emitEvent(event, eventData) {
     for (const listener of this.listenersStack) {
-      listener(event, eventData);
+      listener(event, Object.assign(Object.assign({}, eventData), {
+        eventName: event
+      }));
     }
   }
 
@@ -331,18 +333,65 @@ class VEDirectPnP {
   }
 
   init() {
-    this.initVEDirectDataFlowFromAllDevices().then(() => {
-      this.emitEvent("data-ready");
+    this.initVEDirectDataStreamFromAllDevices().then(() => {
+      this.emitEvent("stream-init", {
+        message: "VE.Direct devices data stream init"
+      });
     }).catch(() => {
-      this.emitEvent("data-error", {
+      this.emitEvent("error", {
         message: "Failed to get data from VE.Direct devices"
       });
     });
   }
 
-  stop() {
-    for (const serialPort of this.serialPorts) {
-      serialPort.close();
+  clean() {
+    this.devicesVEDirectData = {};
+  }
+
+  reset() {
+    this.destroy(() => {
+      this.clean();
+      this.init();
+    });
+  }
+
+  closeSerialPorts() {
+    return new Promise((resolve, reject) => {
+      if (this.serialPorts.length > 0) {
+        const serialPortClosePromises = this.serialPorts.map(serialPort => {
+          return new Promise((resolve, reject) => {
+            serialPort.close(error => {
+              if (error) {
+                console.error(error);
+                reject();
+              } else {
+                resolve();
+              }
+            });
+          });
+        });
+        Promise.all(serialPortClosePromises).then(() => {
+          this.serialPorts = [];
+          resolve();
+        }).catch(() => reject);
+      } else {
+        reject();
+      }
+    });
+  }
+
+  destroy(callback) {
+    if (this.serialPorts.length > 0) {
+      this.closeSerialPorts().then(() => {
+        this.emitEvent("stream-destroy", {
+          message: "VE.Direct devices data stream has been destroyed"
+        });
+        if (callback) callback();
+      }).catch(() => {
+        this.emitEvent("error", {
+          message: "Something went wrong trying to destroy VE.Direct devices data stream"
+        });
+      });
     }
   }
 
@@ -385,17 +434,22 @@ class VEDirectPnP {
         const rawConsoleResponse = stdout.split('\n');
         const validVEDirectInterfaces = rawConsoleResponse.filter(deviceId => deviceId.indexOf("VE_Direct") !== -1);
         const absoluteDevicesPath = validVEDirectInterfaces.map(device => {
-          return this.parameters.VEDirectDevicesPath + device;
+          const absoluteDevicePath = this.parameters.VEDirectDevicesPath + device;
+          this.emitEvent("interface-found", {
+            message: "Found VE.Direct serial port interface",
+            dataDump: absoluteDevicePath
+          });
+          return absoluteDevicePath;
         });
         resolve(absoluteDevicesPath);
       });
     });
   }
 
-  initVEDirectDataFlowFromAllDevices() {
+  initVEDirectDataStreamFromAllDevices() {
     return new Promise((resolve, reject) => {
       if (this.parameters.customVEDirectDevicesPaths && this.parameters.customVEDirectDevicesPaths.length > 0) {
-        const devicesPromises = this.parameters.customVEDirectDevicesPaths.map(devicePath => this.initDataFlowFromVEDirect(devicePath));
+        const devicesPromises = this.parameters.customVEDirectDevicesPaths.map(devicePath => this.initDataStreamFromVEDirect(devicePath));
         Promise.all(devicesPromises).then(() => {
           resolve();
         }).catch(() => {
@@ -403,7 +457,7 @@ class VEDirectPnP {
         });
       } else {
         this.getVEDirectDevicesAvailable().then(devicesPathsFound => {
-          const devicesPromises = devicesPathsFound.map(devicePath => this.initDataFlowFromVEDirect(devicePath));
+          const devicesPromises = devicesPathsFound.map(devicePath => this.initDataStreamFromVEDirect(devicePath));
           Promise.all(devicesPromises).then(() => {
             resolve();
           });
@@ -414,7 +468,7 @@ class VEDirectPnP {
     });
   }
 
-  initDataFlowFromVEDirect(devicePath) {
+  initDataStreamFromVEDirect(devicePath) {
     return new Promise((resolve, reject) => {
       const port = new SerialPort__default["default"](devicePath, {
         baudRate: 19200,
@@ -429,6 +483,21 @@ class VEDirectPnP {
           this.devicesVEDirectData = {};
           reject();
         }
+      });
+      port.on("open", () => {
+        this.emitEvent("device-connection-open", {
+          message: "VE.Direct device connected through serial port",
+          dataDump: devicePath
+        });
+      });
+      port.on('error', err => {
+        this.emitEvent("device-connection-error", {
+          message: "VE.Direct device connection error through serial port",
+          dataDump: {
+            devicePath: devicePath,
+            errorDataDump: err
+          }
+        });
       });
       this.serialPorts.push(port);
       const delimiter = new SerialPort__default["default"].parsers.Delimiter({
