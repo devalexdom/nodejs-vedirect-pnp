@@ -1,5 +1,5 @@
 import { VEDirectData } from "./ve-direct";
-interface IVEDirectPnP_DeviceData {
+export interface IVEDirectPnP_DeviceData {
     deviceName: string;
     deviceSN: string;
     VEDirectData: VEDirectData;
@@ -36,4 +36,3 @@ export declare class VEDirectPnP_MPPTDeviceData implements IVEDirectPnP_DeviceDa
     VEDirectData: VEDirectData;
     constructor(VEDirectRawData: any);
 }
-export {};

@@ -1,7 +1,8 @@
 import SerialPort from "serialport";
+import { IVEDirectPnP_DeviceData } from "./device-data";
 interface IVEDirectPnP_Parameters {
-    veDirectDevicesPath?: string;
-    fluidMode?: boolean;
+    VEDirectDevicesPath?: string;
+    customVEDirectDevicesPaths?: Array<string>;
 }
 interface IVEDirectPnP_EventData {
     message?: String;
@@ -17,21 +18,26 @@ export default class VEDirectPnP {
     };
     serialPorts: Array<SerialPort>;
     fluidModeReady: boolean;
-    constructor({ veDirectDevicesPath }?: {
-        veDirectDevicesPath?: string;
+    constructor({ VEDirectDevicesPath, customVEDirectDevicesPaths }?: {
+        VEDirectDevicesPath?: string;
+        customVEDirectDevicesPaths?: any[];
     });
     on(event: string, callback: Function): void;
     emitEvent(event: string, eventData?: IVEDirectPnP_EventData): void;
     getVictronDeviceSN(VEDirectData: Object): any;
     mapVictronDeviceData(devicesData: {
         [key: string]: Object;
-    }): {};
+    }): {
+        [key: string]: IVEDirectPnP_DeviceData;
+    };
     init(): void;
     stop(): void;
-    getDevicesData(): {};
+    getDevicesData(): {
+        [key: string]: IVEDirectPnP_DeviceData;
+    };
     updateVEDirectDataDeviceData(VEDirectRawData: any): void;
-    getVEDirectDevicesAvailable(): Promise<string | string[]>;
-    initVEDirectDataFlowFromAllDevices(): Promise<unknown>;
-    initDataFlowFromVEDirect(devicePath: any): Promise<unknown>;
+    getVEDirectDevicesAvailable(): Promise<string[]>;
+    initVEDirectDataFlowFromAllDevices(): Promise<void>;
+    initDataFlowFromVEDirect(devicePath: any): Promise<void>;
 }
 export {};

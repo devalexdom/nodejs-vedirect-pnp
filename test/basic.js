@@ -56,6 +56,10 @@ dataReader.on("data-ready", () => {
     }, 1000);
 })
 
+dataReader.on("data-error", (error) => {
+    console.error(error);
+})
+
 dataReader.on("error", (error) => {
     console.error(error);
 })
