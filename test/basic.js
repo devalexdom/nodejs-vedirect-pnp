@@ -1,8 +1,35 @@
 const VEDirectPnP = require("../dist/index");
-
 const dataReader = new VEDirectPnP();
 
-dataReader.on("data-ready", () => {
+const readData = () => {
+    setInterval(() => {
+        console.log(dataReader.getDevicesData());
+    }, 2000);
+}
+dataReader.on("all", (eventData) => {
+    console.log(eventData);
+});
+
+dataReader.on("stream-init", () => {
+    readData();
+});
+
+dataReader.on("error", (error) => {
+    console.error(error);
+    /*
+      {
+        message: string;
+        dataDump: any;
+      }
+    */
+})
+
+setInterval(() => {
+    console.log(dataReader.reset());
+}, 10000);
+
+/*
+dataReader.on("stream-init", () => {
     setInterval(() => {
         const allDevicesData = dataReader.getDevicesData();
         console.log(allDevicesData["HQ21340EFYE"]);
@@ -52,10 +79,6 @@ dataReader.on("data-ready", () => {
                 dataTimeStamp: 1643058077196
             }
         }
-        */
-    }, 1000);
-})
-
-dataReader.on("error", (error) => {
-    console.error(error);
-})
+        *//*
+}, 1000);
+})*/

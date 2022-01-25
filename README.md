@@ -1,6 +1,16 @@
 # victron-vedirect-pnp
 A plug and play way to easily read data from your connected Victron VE.Direct devices
 
+## Changelog
+```
+0.0.5: [Feature breaking changes!] 
+--Improved events naming, types and listener
+--Implement reset functionality
+--Implement custom VE.Direct devices paths constructor parameter
+--
+0.0.4: [Hotfix]
+--Fixes incorrect identification of VE.Direct serial port interfaces
+```
 
 ## Usage
 1. Connect your Victron device using the VE.Direct USB interface to your Raspberry or Linux x86-64 based computer
@@ -11,7 +21,7 @@ A plug and play way to easily read data from your connected Victron VE.Direct de
 ```javascript
 const VEDirectPnP = require("@devalexdom/victron-vedirect-pnp");
 const dataReader = new VEDirectPnP();
-dataReader.on("data-ready", () => {
+dataReader.on("stream-init", () => {
   console.log(dataReader.getDevicesData());
   /*{
     "HQ21340EFYE": {
@@ -48,7 +58,7 @@ dataReader.on("data-ready", () => {
 ```javascript
 const VEDirectPnP = require("@devalexdom/victron-vedirect-pnp");
 const dataReader = new VEDirectPnP({ veDirectDevicesPath: "/dev/serial/by-id/" }); //Optional parameter to set the directory path of the VE.Direct USB interfaces
-dataReader.on("data-ready", () => {
+dataReader.on("stream-init", () => {
         const allDevicesData = dataReader.getDevicesData();
         console.log(allDevicesData["HQ21340EFYE"]);
         /* If your device serial number is HQ21340EFYE the expected output will be:
@@ -105,17 +115,83 @@ dataReader.on("data-ready", () => {
 dataReader.on("error", (error) => {
     console.error(error);
 })
+
+//Adequate for debugging
+dataReader.on("all", (eventData) => {
+    console.error(eventData);
+})
 ```
 
-### Pending things to code
+## Constructor parameters
+### Optional VEDirectDevicesPath?: string
+By default "/dev/serial/by-id/", the path where the VE.Direct interfaces will be searched
+### Optional customVEDirectDevicesPaths?: Array<string>
+Manually sets the VE.Direct interfaces paths
+```javascript
+new VEDirectPnP({
+    veDirectDevicesPath: "/dev/serial/by-id/", 
+    customVEDirectDevicesPaths: ["/dev/serial/by-id/usb-VictronEnergy_BV_VE_Direct_cable_VE83Y8X8-if00-port0"]
+});
+```
+
+## Methods
+### destroy(callback:void)
+Destroys the data stream from VE.Direct devices
+```javascript
+const dataReader = new VEDirectPnP();
+dataReader.destroy(()=>{
+    //callback when data stream is destroyed (All serial ports connection closed)
+});
+```
+### reset()
+Resets the data stream from VE.Direct devices
+```javascript
+const dataReader = new VEDirectPnP();
+dataReader.reset(); //Be aware that the event "stream-init" will be emitted again
+```
+### clean()
+Cleans the cached data from VE.Direct devices stream
+```javascript
+const dataReader = new VEDirectPnP();
+dataReader.reset();
+```
+### init()
+Initializes the data stream from VE.Direct devices
+```javascript
+const dataReader = new VEDirectPnP();
+dataReader.init(); //Initializes data stream from VE.Direct devices (Called on VEDirectPnP constructor)
+```
+## Events
+### stream-init
+Emitted when the VE.Direct devices starts sending data through serial port
+### stream-destroy
+Emitted when the VE.Direct devices stream has been destroyed (All serial ports connection closed)
+### error
+Emitted when a critical error occurs with a (hopelly) helpful message
+### interface-found
+Emitted when a VE.Direct interface is automatically detected (The plug and play way)
+### device-connection-open
+Emitted when a connection to the VE.Direct device is opened
+### device-connection-error
+Emitted when a connection to the VE.Direct device suffers an error
+```javascript
+const dataReader = new VEDirectPnP();
+dataReader.on("device-connection-error", () => {
+    setTimeout(() => {
+        dataReader.reset();
+    }, 5000);
+});//Example to reestablish a lost connection, it's not tested but should do the trick ;)
+```
+
+## Pending things to code
 
 1. Victron Phoenix Inverters data mapping
 2. Victron BMV data mapping
 3. Victron Phoenix Charger data mapping
 4. Kill the bugs
 
-### Related
+## Related
 VE.Direct protocol 3.29 [documentation](docs/victron_energy_VE.Direct-Protocol-3.29.pdf).
 
-### Credits
+## Credits
 VE.Direct parser using Stream interface [@bencevans/ve.direct](https://github.com/bencevans/ve.direct).
