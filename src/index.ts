@@ -8,6 +8,7 @@ import { VEDirectPnP_MPPTDeviceData, VEDirectPnP_UnsupportedDeviceData, IVEDirec
 
 interface IVEDirectPnP_Parameters {
   VEDirectDevicesPath?: string;
+  customVEDirectDevicesPaths?: Array<string>;
 }
 
 interface IVEDirectPnP_EventData {
@@ -24,10 +25,11 @@ export default class VEDirectPnP {
   devicesVEDirectData: { [key: string]: Object }
   serialPorts: Array<SerialPort>;
   fluidModeReady: boolean;
-  constructor({ VEDirectDevicesPath = "/dev/serial/by-id/" } = {}) {
-    this.version = 0.04;
+  constructor({ VEDirectDevicesPath = "/dev/serial/by-id/", customVEDirectDevicesPaths = [] } = {}) {
+    this.version = 0.05;
     this.parameters = {
-      VEDirectDevicesPath
+      VEDirectDevicesPath,
+      customVEDirectDevicesPaths
     };
     this.listenersStack = [];
     this.devicesVEDirectData = {};
@@ -72,9 +74,9 @@ export default class VEDirectPnP {
   init() {
     this.initVEDirectDataFlowFromAllDevices().then(() => {
       this.emitEvent("data-ready");
-    }).catch((error) => {
-      this.emitEvent("error", {
-        message: error
+    }).catch(() => {
+      this.emitEvent("data-error", {
+        message: "Failed to get data from VE.Direct devices"
       });
     });
   }
@@ -107,16 +109,19 @@ export default class VEDirectPnP {
   }
 
   getVEDirectDevicesAvailable() {
-    return new Promise<Array<string> | string>((resolve, reject) => {
+    return new Promise<Array<string>>((resolve, reject) => {
       exec(`ls ${this.parameters.VEDirectDevicesPath}`, (error, stdout, stderr) => {
-        if (error) {
-          reject(error.message);
-        }
-        if (stderr) {
-          reject(stderr);
+        const errorData = error || stderr;
+        if (errorData) {
+          this.emitEvent("error", {
+            message: "Failed to get available VE.Direct devices, try with customVEDirectDevicesPaths option.",
+            dataDump: errorData
+          });
+          reject([]);
+          return;
         }
         const rawConsoleResponse = stdout.split('\n');
-        const validVEDirectInterfaces = rawConsoleResponse.filter((deviceId)=> deviceId.indexOf("VE_Direct") !== -1);
+        const validVEDirectInterfaces = rawConsoleResponse.filter((deviceId) => deviceId.indexOf("VE_Direct") !== -1);
         const absoluteDevicesPath = validVEDirectInterfaces.map((device) => {
           return this.parameters.VEDirectDevicesPath + device;
         });
@@ -126,25 +131,30 @@ export default class VEDirectPnP {
   }
 
   initVEDirectDataFlowFromAllDevices() {
-    return new Promise((resolve, reject) => {
-      const devicesPromises = [];
-      this.getVEDirectDevicesAvailable().then((devices) => {
-        for (const device of devices) {
-          devicesPromises.push(this.initDataFlowFromVEDirect(device));
-        }
+    return new Promise<void>((resolve, reject) => {
+      if (this.parameters.customVEDirectDevicesPaths && this.parameters.customVEDirectDevicesPaths.length > 0) {
+        const devicesPromises = this.parameters.customVEDirectDevicesPaths.map(devicePath => this.initDataFlowFromVEDirect(devicePath));
         Promise.all(devicesPromises).then(() => {
-          resolve(true);
-        }, error => {
-          reject(error);
+          resolve();
+        }).catch(() => {
+          reject();
         });
-      }).catch((error) => {
-        reject(error);
-      });
+      }
+      else {
+        this.getVEDirectDevicesAvailable().then((devicesPathsFound) => {
+          const devicesPromises = devicesPathsFound.map(devicePath => this.initDataFlowFromVEDirect(devicePath));
+          Promise.all(devicesPromises).then(() => {
+            resolve();
+          });
+        }).catch(() => {
+          reject();
+        });
+      }
     });
   }
 
   initDataFlowFromVEDirect(devicePath) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const port = new SerialPort(devicePath, {
         baudRate: 19200,
         dataBits: 8,
@@ -156,7 +166,7 @@ export default class VEDirectPnP {
             dataDump: err
           });
           this.devicesVEDirectData = {};
-          reject(err);
+          reject();
         }
       });
 
@@ -172,7 +182,7 @@ export default class VEDirectPnP {
 
       VEDParser.on("data", (VEDirectRawData) => {
         if (!this.devicesVEDirectData[this.getVictronDeviceSN(VEDirectRawData)]) {
-          resolve(true);
+          resolve();
         }
         this.updateVEDirectDataDeviceData(VEDirectRawData);
       });
