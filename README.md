@@ -5,6 +5,7 @@ A plug and play way to easily read data from your connected Victron VE.Direct de
 ```
 0.0.5: [Feature breaking changes!] 
 --Improved events naming, types and listener
+--Implement reset functionality
 --Implement custom VE.Direct devices paths constructor parameter
 --
 0.0.4: [Hotfix]
