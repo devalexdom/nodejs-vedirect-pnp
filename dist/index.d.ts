@@ -5,8 +5,9 @@ interface IVEDirectPnP_Parameters {
     customVEDirectDevicesPaths?: Array<string>;
 }
 interface IVEDirectPnP_EventData {
-    message?: String;
+    message?: string;
     dataDump?: any;
+    eventName?: string;
 }
 export default class VEDirectPnP {
     version: number;
@@ -31,13 +32,16 @@ export default class VEDirectPnP {
         [key: string]: IVEDirectPnP_DeviceData;
     };
     init(): void;
-    stop(): void;
+    clean(): void;
+    reset(): void;
+    closeSerialPorts(): Promise<void>;
+    destroy(callback?: Function): void;
     getDevicesData(): {
         [key: string]: IVEDirectPnP_DeviceData;
     };
     updateVEDirectDataDeviceData(VEDirectRawData: any): void;
     getVEDirectDevicesAvailable(): Promise<string[]>;
-    initVEDirectDataFlowFromAllDevices(): Promise<void>;
-    initDataFlowFromVEDirect(devicePath: any): Promise<void>;
+    initVEDirectDataStreamFromAllDevices(): Promise<void>;
+    initDataStreamFromVEDirect(devicePath: any): Promise<void>;
 }
 export {};
