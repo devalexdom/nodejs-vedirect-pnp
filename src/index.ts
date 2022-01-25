@@ -3,12 +3,11 @@ declare const Buffer; //To silence TypeScript bug? in Buffer.from(-->[0x0d, 0x0a
 import { exec } from "child_process";
 import { VEDirectParser } from "./ve-direct";
 import SerialPort from "serialport";
-import { VEDirectPnP_MPPTDeviceData, VEDirectPnP_UnsupportedDeviceData } from "./device-data";
+import { VEDirectPnP_MPPTDeviceData, VEDirectPnP_UnsupportedDeviceData, IVEDirectPnP_DeviceData } from "./device-data";
 
 
 interface IVEDirectPnP_Parameters {
-  veDirectDevicesPath?: string;
-  fluidMode?: boolean;
+  VEDirectDevicesPath?: string;
 }
 
 interface IVEDirectPnP_EventData {
@@ -25,10 +24,10 @@ export default class VEDirectPnP {
   devicesVEDirectData: { [key: string]: Object }
   serialPorts: Array<SerialPort>;
   fluidModeReady: boolean;
-  constructor({ veDirectDevicesPath = "/dev/serial/by-id/" } = {}) {
-    this.version = 0.02;
+  constructor({ VEDirectDevicesPath = "/dev/serial/by-id/" } = {}) {
+    this.version = 0.04;
     this.parameters = {
-      veDirectDevicesPath: veDirectDevicesPath,
+      VEDirectDevicesPath
     };
     this.listenersStack = [];
     this.devicesVEDirectData = {};
@@ -56,7 +55,7 @@ export default class VEDirectPnP {
     return VEDirectData["SER#"];
   }
 
-  mapVictronDeviceData(devicesData: { [key: string]: Object }) {
+  mapVictronDeviceData(devicesData: { [key: string]: Object }): { [key: string]: IVEDirectPnP_DeviceData } {
     const devicesDataMapped = {};
     for (const deviceSN in devicesData) {
       const deviceData = devicesData[deviceSN];
@@ -109,17 +108,17 @@ export default class VEDirectPnP {
 
   getVEDirectDevicesAvailable() {
     return new Promise<Array<string> | string>((resolve, reject) => {
-      exec(`ls ${this.parameters.veDirectDevicesPath}`, (error, stdout, stderr) => {
+      exec(`ls ${this.parameters.VEDirectDevicesPath}`, (error, stdout, stderr) => {
         if (error) {
           reject(error.message);
         }
         if (stderr) {
           reject(stderr);
         }
-        const rawResponse = stdout.split('\n');
-        rawResponse.pop();
-        const absoluteDevicesPath = rawResponse.map((device) => {
-          return this.parameters.veDirectDevicesPath + device;
+        const rawConsoleResponse = stdout.split('\n');
+        const validVEDirectInterfaces = rawConsoleResponse.filter((deviceId)=> deviceId.indexOf("VE_Direct") !== -1);
+        const absoluteDevicesPath = validVEDirectInterfaces.map((device) => {
+          return this.parameters.VEDirectDevicesPath + device;
         });
         resolve(absoluteDevicesPath);
       });

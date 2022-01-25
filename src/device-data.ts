@@ -2,7 +2,7 @@ import deviceName from "./data/device-name";
 import { StatusMessage, ErrorMessage, MPPTMessage, DeviceType, OffReasonMessage } from "./data/device-data-enum";
 import { VEDirectData } from "./ve-direct";
 
-interface IVEDirectPnP_DeviceData {
+export interface IVEDirectPnP_DeviceData {
     deviceName: string;
     deviceSN: string;
     VEDirectData: VEDirectData;
