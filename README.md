@@ -3,11 +3,14 @@ A plug and play way to easily read data from your connected Victron VE.Direct de
 
 ## Changelog
 ```
+0.0.6: [Feature]
+--Added all methods, constructor parameters and events documentation on README.md
+-
 0.0.5: [Feature breaking changes!] 
 --Improved events naming, types and listener
 --Implement reset functionality
 --Implement custom VE.Direct devices paths constructor parameter
---
+-
 0.0.4: [Hotfix]
 --Fixes incorrect identification of VE.Direct serial port interfaces
 ```
@@ -115,11 +118,6 @@ dataReader.on("stream-init", () => {
 dataReader.on("error", (error) => {
     console.error(error);
 })
-
-//Adequate for debugging
-dataReader.on("all", (eventData) => {
-    console.error(eventData);
-})
 ```
 
 ## Constructor parameters
@@ -135,7 +133,59 @@ new VEDirectPnP({
 ```
 
 ## Methods
-### destroy(callback:void)
+### getDevicesData():{ [key: string]: IVEDirectPnP_DeviceData }
+Returns a key -> value, the key is the serial number of the Victron device, value the processed stream data
+```javascript
+const dataReader = new VEDirectPnP();
+dataReader.on("interface-found", (eventData) => {
+    /*
+    eventData: IVEDirectPnP_EventData
+    {
+        message: string;
+        dataDump: any;
+        eventName: string;
+    }
+    */
+})
+```
+### on(eventName:string, callback:eventData):void
+Listen to VEDirectPnP events
+```javascript
+const dataReader = new VEDirectPnP();
+dataReader.on("interface-found", (eventData) => {
+    /*
+    eventData: IVEDirectPnP_EventData
+    {
+        message: string;
+        dataDump: any;
+        eventName: string;
+    }
+    */
+})
+```
+With the "all" wildcard the listener will fire with all events
+```javascript
+const dataReader = new VEDirectPnP();
+dataReader.on("all", console.log);
+/*
+{
+  message: 'Found VE.Direct serial port interface',
+  dataDump: '/dev/serial/by-id/usb-VictronEnergy_BV_VE_Direct_cable_VE83Y8X8-if00-port0',
+  eventName: 'interface-found'
+}
+{
+  message: 'VE.Direct device connected through serial port',
+  dataDump: '/dev/serial/by-id/usb-VictronEnergy_BV_VE_Direct_cable_VE83Y8X8-if00-port0',
+  eventName: 'device-connection-open'
+}
+{
+  message: 'VE.Direct devices data stream init',
+  eventName: 'stream-init'
+}
+
+*/
+```
+### destroy(callback:void):void
 Destroys the data stream from VE.Direct devices
 ```javascript
 const dataReader = new VEDirectPnP();
@@ -143,19 +193,19 @@ dataReader.destroy(()=>{
     //callback when data stream is destroyed (All serial ports connection closed)
 });
 ```
-### reset()
+### reset():void
 Resets the data stream from VE.Direct devices
 ```javascript
 const dataReader = new VEDirectPnP();
 dataReader.reset(); //Be aware that the event "stream-init" will be emitted again
 ```
-### clean()
+### clean():void
 Cleans the cached data from VE.Direct devices stream
 ```javascript
 const dataReader = new VEDirectPnP();
 dataReader.reset();
 ```
-### init()
+### init():void
 Initializes the data stream from VE.Direct devices
 ```javascript
 const dataReader = new VEDirectPnP();
