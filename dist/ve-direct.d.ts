@@ -14,6 +14,7 @@ export declare class VEDirectData {
     I3?: number;
     IL?: number;
     P?: number;
+    T?: number;
     CE?: number;
     SOC?: number;
     TTG?: number;
@@ -50,6 +51,7 @@ export declare class VEDirectData {
     PID?: number;
     HSDS?: number;
     MODE?: number;
+    MON?: number;
     AC_OUT_V?: number;
     AC_OUT_I?: number;
     AC_OUT_S?: number;

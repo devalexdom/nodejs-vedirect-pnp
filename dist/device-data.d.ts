@@ -36,3 +36,21 @@ export declare class VEDirectPnP_MPPTDeviceData implements IVEDirectPnP_DeviceDa
     VEDirectData: VEDirectData;
     constructor(VEDirectRawData: any);
 }
+export declare class VEDirectPnP_SmartShuntDeviceData implements IVEDirectPnP_DeviceData {
+    deviceType: string;
+    deviceSN: string;
+    deviceName: string;
+    deviceFirmwareVersion: number;
+    batteryVoltage: number;
+    batteryCurrent: number;
+    batteryPower: number;
+    stateOfCharge: number;
+    consumedAmpHours: number;
+    temperature: number;
+    timeToGo: number;
+    monitorType: string;
+    alarmState: boolean;
+    alarmReason: string;
+    VEDirectData: VEDirectData;
+    constructor(VEDirectRawData: any, deviceSN: string);
+}
