@@ -80,15 +80,36 @@ export class VEDirectPnP_SmartShuntDeviceData implements IVEDirectPnP_DeviceData
     deviceName: string;
     deviceFirmwareVersion: number;
     batteryVoltage: number;
+    batteryMinimumVoltage: number;
+    batteryMaximumVoltage: number;
     batteryCurrent: number;
+    batteryCurrentDeepestDischarge: number;
+    batteryCurrentLatestDischarge: number;
+    batteryCurrentAverageDischarge: number;
     batteryPower: number;
     stateOfCharge: number;
-    consumedAmpHours: number;
     temperature: number;
-    timeToGo: number;
+    hoursPowerRemaining: number;
+    hoursSinceFullCharge: number;
     monitorType: string;
     alarmState: boolean;
     alarmReason: string;
+    batteryCycles: number;
+    batteryFullCycles: number;
+    batteryConsumedAmpHours: number;
+    batteryCumulativeAmpHours: number;
+    totalDischargeHours: number;
+    totalChargeHours: number;
+    batterySyncs: number;
+    auxiliaryVoltage: number;
+    auxiliaryMinimumVoltage: number;
+    auxiliaryMaximumVoltage: number;
+    batteryMidpointVoltage: number;
+    batteryMidpointDeviation: number;
+    alarmLowBatteryCount: number;
+    alarmHighBatteryCount: number;
+    alarmLowAuxiliaryCount: number;
+    alarmHighAuxiliaryCount: number;
     VEDirectData: VEDirectData;
     constructor(VEDirectRawData, deviceSN: string) {
         //VE.Direct -> BMVDeviceData properties mapping
@@ -98,15 +119,36 @@ export class VEDirectPnP_SmartShuntDeviceData implements IVEDirectPnP_DeviceData
         this.deviceType = DeviceType[2];
         this.deviceFirmwareVersion = getDeviceFW(data);
         this.batteryVoltage = data["V"] / 1000; //mV -> V
+        this.batteryMinimumVoltage = data["H7"] / 1000; //mV -> V
+        this.batteryMaximumVoltage = data["H8"] / 1000; //mV -> V
         this.batteryCurrent = data["I"] / 1000; //mA -> A
+        this.batteryCurrentDeepestDischarge = data["H1"] / 1000; //mAh -> Ah
+        this.batteryCurrentLatestDischarge = data["H2"] / 1000; //mAh -> Ah
+        this.batteryCurrentAverageDischarge = data["H3"] / 1000; //mAh -> Ah
         this.batteryPower = data["P"]; //W
-        this.consumedAmpHours = data["CE"] / 1000; //mAh -> Ah
-        this.stateOfCharge = data["SOC"] / 1000; // %
+        this.stateOfCharge = data["SOC"] / 1000; //%
         this.monitorType = MonitorType[data["MON"]];
-        this.temperature = data["T"]; // Celsius
-        this.timeToGo = data["TTG"]; // Minutes
+        this.temperature = data["T"]; //celsius
+        this.hoursPowerRemaining = data["TTG"] / 60; //minutes -> hours
+        this.hoursSinceFullCharge = data["H9"] / 3600; //seconds -> hours
         this.alarmState = getStringBoolean(data["Alarm"]);
-        this.alarmReason = AlarmReasonMessage[data["AR"]];
+        this.alarmReason = AlarmReasonMessage[data["AR"]]
+        this.batteryCycles = data["H4"];
+        this.batteryFullCycles = data["H5"];
+        this.batteryConsumedAmpHours = data["CE"] / 1000; //mAh -> Ah
+        this.batteryCumulativeAmpHours = data["H6"] / 1000; //mAh -> Ah
+        this.totalDischargeHours = data["H17"] / 100; //kWh
+        this.totalChargeHours = data["H18"] / 100; //kWh
+        this.batterySyncs = data["H10"];
+        this.auxiliaryVoltage = data["VS"] / 1000; //mV -> V
+        this.auxiliaryMinimumVoltage = data["H15"] / 1000; //mV -> V
+        this.auxiliaryMaximumVoltage = data["H16"] / 1000; //mV -> V
+        this.batteryMidpointVoltage = data["VM"] / 1000; //mV -> V
+        this.batteryMidpointDeviation = data["DM"] / 1000; //%
+        this.alarmLowBatteryCount = data["H11"];
+        this.alarmHighBatteryCount = data["H12"];
+        this.alarmLowAuxiliaryCount = data["H13"];
+        this.alarmHighAuxiliaryCount = data["H14"];
         this.VEDirectData = data;
     }
 }
