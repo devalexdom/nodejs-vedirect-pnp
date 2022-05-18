@@ -51,7 +51,7 @@ export declare class VEDirectPnP_SmartShuntDeviceData implements IVEDirectPnP_De
     batteryPower: number;
     stateOfCharge: number;
     temperature: number;
-    hoursPowerRemaining: number;
+    hoursPowerRemaining: any;
     hoursSinceFullCharge: number;
     monitorType: string;
     alarmState: boolean;

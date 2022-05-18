@@ -328,7 +328,7 @@ class VEDirectPnP_SmartShuntDeviceData {
     this.monitorType = MonitorType[data["MON"]];
     this.temperature = data["T"]; //celsius
 
-    this.hoursPowerRemaining = data["TTG"] / 60; //minutes -> hours
+    this.hoursPowerRemaining = getRemainingTime(data["TTG"]); //minutes -> hours
 
     this.hoursSinceFullCharge = data["H9"] / 3600; //seconds -> hours
 
@@ -379,6 +379,10 @@ function getDeviceFW(VEDirectData) {
 
 function getStringBoolean(stringBoolean) {
   return stringBoolean === "ON" || stringBoolean === "On";
+}
+
+function getRemainingTime(time) {
+  return time > 0 ? time / 60 : null;
 }
 
 class VEDirectPnP {

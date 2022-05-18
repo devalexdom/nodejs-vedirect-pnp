@@ -89,7 +89,7 @@ export class VEDirectPnP_SmartShuntDeviceData implements IVEDirectPnP_DeviceData
     batteryPower: number;
     stateOfCharge: number;
     temperature: number;
-    hoursPowerRemaining: number;
+    hoursPowerRemaining: any;
     hoursSinceFullCharge: number;
     monitorType: string;
     alarmState: boolean;
@@ -129,7 +129,7 @@ export class VEDirectPnP_SmartShuntDeviceData implements IVEDirectPnP_DeviceData
         this.stateOfCharge = data["SOC"] / 1000; //%
         this.monitorType = MonitorType[data["MON"]];
         this.temperature = data["T"]; //celsius
-        this.hoursPowerRemaining = data["TTG"] / 60; //minutes -> hours
+        this.hoursPowerRemaining = getRemainingTime(data["TTG"]); //minutes -> hours
         this.hoursSinceFullCharge = data["H9"] / 3600; //seconds -> hours
         this.alarmState = getStringBoolean(data["Alarm"]);
         this.alarmReason = AlarmReasonMessage[data["AR"]]
@@ -167,4 +167,8 @@ function getDeviceFW(VEDirectData: Object): number {
 
 function getStringBoolean(stringBoolean: string): boolean {
     return stringBoolean === "ON" || stringBoolean === "On";
+}
+
+function getRemainingTime(time: number):any {
+    return time > 0 ? time / 60 : null;
 }
