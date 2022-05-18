@@ -3,12 +3,13 @@ declare const Buffer; //To silence TypeScript bug? in Buffer.from(-->[0x0d, 0x0a
 import { exec } from "child_process";
 import { VEDirectParser } from "./ve-direct";
 import SerialPort from "serialport";
-import { VEDirectPnP_MPPTDeviceData, VEDirectPnP_UnsupportedDeviceData, IVEDirectPnP_DeviceData } from "./device-data";
+import { VEDirectPnP_MPPTDeviceData, VEDirectPnP_SmartShuntDeviceData, VEDirectPnP_UnsupportedDeviceData, IVEDirectPnP_DeviceData } from "./device-data";
 
 
 interface IVEDirectPnP_Parameters {
   VEDirectDevicesPath?: string;
   customVEDirectDevicesPaths?: Array<string>;
+  fallbackSerialNumber?: any;
 }
 
 interface IVEDirectPnP_EventData {
@@ -26,11 +27,12 @@ export default class VEDirectPnP {
   devicesVEDirectData: { [key: string]: Object }
   serialPorts: Array<SerialPort>;
   fluidModeReady: boolean;
-  constructor({ VEDirectDevicesPath = "/dev/serial/by-id/", customVEDirectDevicesPaths = [] } = {}) {
+  constructor({ VEDirectDevicesPath = "/dev/serial/by-id/", customVEDirectDevicesPaths = [], fallbackSerialNumber = false} = {}) {
     this.version = 0.05;
     this.parameters = {
       VEDirectDevicesPath,
-      customVEDirectDevicesPaths
+      customVEDirectDevicesPaths,
+      fallbackSerialNumber
     };
     this.listenersStack = [];
     this.devicesVEDirectData = {};
@@ -55,7 +57,7 @@ export default class VEDirectPnP {
   }
 
   getVictronDeviceSN(VEDirectData: Object) {
-    return VEDirectData["SER#"];
+    return VEDirectData["SER#"] ? VEDirectData["SER#"] : this.parameters.fallbackSerialNumber;
   }
 
   mapVictronDeviceData(devicesData: { [key: string]: Object }): { [key: string]: IVEDirectPnP_DeviceData } {
@@ -64,6 +66,9 @@ export default class VEDirectPnP {
       const deviceData = devicesData[deviceSN];
       if (!isNaN(deviceData["MPPT"])) {
         devicesDataMapped[deviceSN] = new VEDirectPnP_MPPTDeviceData(deviceData);
+      }
+      else if (deviceData["BMV"] && deviceData["BMV"].match(/SmartShunt/)) {
+        devicesDataMapped[deviceSN] = new VEDirectPnP_SmartShuntDeviceData(deviceData, deviceSN);
       }
       else {
         devicesDataMapped[deviceSN] = new VEDirectPnP_UnsupportedDeviceData(deviceData);

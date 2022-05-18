@@ -1,5 +1,5 @@
 import deviceName from "./data/device-name";
-import { StatusMessage, ErrorMessage, MPPTMessage, DeviceType, OffReasonMessage } from "./data/device-data-enum";
+import { StatusMessage, ErrorMessage, MPPTMessage, DeviceType, OffReasonMessage, AlarmReasonMessage, MonitorType } from "./data/device-data-enum";
 import { VEDirectData } from "./ve-direct";
 
 export interface IVEDirectPnP_DeviceData {
@@ -74,11 +74,48 @@ export class VEDirectPnP_MPPTDeviceData implements IVEDirectPnP_DeviceData {
     }
 }
 
+export class VEDirectPnP_SmartShuntDeviceData implements IVEDirectPnP_DeviceData {
+    deviceType: string;
+    deviceSN: string;
+    deviceName: string;
+    deviceFirmwareVersion: number;
+    batteryVoltage: number;
+    batteryCurrent: number;
+    batteryPower: number;
+    stateOfCharge: number;
+    consumedAmpHours: number;
+    temperature: number;
+    timeToGo: number;
+    monitorType: string;
+    alarmState: boolean;
+    alarmReason: string;
+    VEDirectData: VEDirectData;
+    constructor(VEDirectRawData, deviceSN: string) {
+        //VE.Direct -> BMVDeviceData properties mapping
+        const data = new VEDirectData(VEDirectRawData);
+        this.deviceName = getDeviceName(data["PID"]);
+        this.deviceSN = deviceSN;
+        this.deviceType = DeviceType[2];
+        this.deviceFirmwareVersion = getDeviceFW(data);
+        this.batteryVoltage = data["V"] / 1000; //mV -> V
+        this.batteryCurrent = data["I"] / 1000; //mA -> A
+        this.batteryPower = data["P"]; //W
+        this.consumedAmpHours = data["CE"] / 1000; //mAh -> Ah
+        this.stateOfCharge = data["SOC"] / 1000; // %
+        this.monitorType = MonitorType[data["MON"]];
+        this.temperature = data["T"]; // Celsius
+        this.timeToGo = data["TTG"]; // Minutes
+        this.alarmState = getStringBoolean(data["Alarm"]);
+        this.alarmReason = AlarmReasonMessage[data["AR"]];
+        this.VEDirectData = data;
+    }
+}
+
 function getDeviceName(pid: number): string {
     if (deviceName[pid]) {
         return deviceName[pid];
     }
-    return "Unknow Victron Device";
+    return "Unknown Victron Device";
 }
 
 function getDeviceFW(VEDirectData: Object): number {
