@@ -483,8 +483,9 @@ class VEDirectPnP {
       return;
     }
 
+    const cachedDeviceData = this.devicesVEDirectData[serialNumber] || {};
     this.devicesVEDirectData = Object.assign(Object.assign({}, this.devicesVEDirectData), {
-      [serialNumber]: Object.assign(Object.assign({}, VEDirectRawData), {
+      [serialNumber]: Object.assign(Object.assign(Object.assign({}, cachedDeviceData), VEDirectRawData), {
         dataTimeStamp: new Date().getTime()
       })
     });

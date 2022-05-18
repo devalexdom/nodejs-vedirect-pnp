@@ -156,10 +156,12 @@ export default class VEDirectPnP {
       });
       return;
     }
+
+    const cachedDeviceData = this.devicesVEDirectData[serialNumber] || {};
     this.devicesVEDirectData = {
       ...this.devicesVEDirectData,
       [serialNumber]: {
-        ...VEDirectRawData, ...{ dataTimeStamp: new Date().getTime() }
+        ...cachedDeviceData, ...VEDirectRawData, ...{ dataTimeStamp: new Date().getTime() }
       }
     };
   }
