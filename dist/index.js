@@ -128,7 +128,10 @@ const deviceName = {
   41235: "BlueSolar MPPT VE.Can 250/100",
   41236: "SmartSolar MPPT VE.Can 250/70 rev2",
   41237: "SmartSolar MPPT VE.Can 250/100 rev2",
-  41238: "SmartSolar MPPT VE.Can 250/85 rev2"
+  41238: "SmartSolar MPPT VE.Can 250/85 rev2",
+  41865: "SmartShunt 500A/50mV",
+  41866: "SmartShunt 1000A/50mV",
+  41867: "SmartShunt 2000A/50mV"
 };
 
 var StatusMessage;
@@ -147,7 +150,7 @@ var StatusMessage;
   StatusMessage[StatusMessage["Starting-up"] = 245] = "Starting-up";
   StatusMessage[StatusMessage["Repeated absorption"] = 246] = "Repeated absorption";
   StatusMessage[StatusMessage["Auto equalize / Recondition"] = 247] = "Auto equalize / Recondition";
-  StatusMessage[StatusMessage["BatterySafe"] = 247] = "BatterySafe";
+  StatusMessage[StatusMessage["BatterySafe"] = 248] = "BatterySafe";
   StatusMessage[StatusMessage["External Control"] = 252] = "External Control";
 })(StatusMessage || (StatusMessage = {}));
 
@@ -199,6 +202,20 @@ var OffReasonMessage;
   OffReasonMessage[OffReasonMessage["Analysing input voltage"] = 100] = "Analysing input voltage";
 })(OffReasonMessage || (OffReasonMessage = {}));
 
+var AlarmReasonMessage;
+
+(function (AlarmReasonMessage) {
+  AlarmReasonMessage[AlarmReasonMessage[""] = 0] = "";
+  AlarmReasonMessage[AlarmReasonMessage["Low Voltage"] = 1] = "Low Voltage";
+  AlarmReasonMessage[AlarmReasonMessage["High Voltage"] = 2] = "High Voltage";
+  AlarmReasonMessage[AlarmReasonMessage["Low SOC"] = 4] = "Low SOC";
+  AlarmReasonMessage[AlarmReasonMessage["Low Starter Voltage"] = 8] = "Low Starter Voltage";
+  AlarmReasonMessage[AlarmReasonMessage["High Starter Voltage"] = 16] = "High Starter Voltage";
+  AlarmReasonMessage[AlarmReasonMessage["Low Temperature"] = 32] = "Low Temperature";
+  AlarmReasonMessage[AlarmReasonMessage["High Temperature"] = 64] = "High Temperature";
+  AlarmReasonMessage[AlarmReasonMessage["Mid Voltage"] = 128] = "Mid Voltage";
+})(AlarmReasonMessage || (AlarmReasonMessage = {}));
+
 var DeviceType;
 
 (function (DeviceType) {
@@ -207,6 +224,29 @@ var DeviceType;
   DeviceType[DeviceType["BMV"] = 2] = "BMV";
   DeviceType[DeviceType["Charger"] = 3] = "Charger";
 })(DeviceType || (DeviceType = {}));
+
+var MonitorType;
+
+(function (MonitorType) {
+  MonitorType[MonitorType["Solar charger"] = -9] = "Solar charger";
+  MonitorType[MonitorType["Wind turbine"] = -8] = "Wind turbine";
+  MonitorType[MonitorType["Shaft generator"] = -7] = "Shaft generator";
+  MonitorType[MonitorType["Alternator"] = -6] = "Alternator";
+  MonitorType[MonitorType["Fuel cell"] = -5] = "Fuel cell";
+  MonitorType[MonitorType["Water generator"] = -4] = "Water generator";
+  MonitorType[MonitorType["DC/DC charger"] = -3] = "DC/DC charger";
+  MonitorType[MonitorType["AC charger"] = -2] = "AC charger";
+  MonitorType[MonitorType["Generic source"] = -1] = "Generic source";
+  MonitorType[MonitorType["Battery monitor (BMV)"] = 0] = "Battery monitor (BMV)";
+  MonitorType[MonitorType["Generic load"] = 1] = "Generic load";
+  MonitorType[MonitorType["Electric drive"] = 2] = "Electric drive";
+  MonitorType[MonitorType["Fridge"] = 3] = "Fridge";
+  MonitorType[MonitorType["Water pump"] = 4] = "Water pump";
+  MonitorType[MonitorType["Bilge pump"] = 5] = "Bilge pump";
+  MonitorType[MonitorType["DC System"] = 6] = "DC System";
+  MonitorType[MonitorType["Inverter"] = 7] = "Inverter";
+  MonitorType[MonitorType["Water heater"] = 8] = "Water heater";
+})(MonitorType || (MonitorType = {}));
 
 class VEDirectPnP_UnsupportedDeviceData {
   constructor(VEDirectRawData) {
@@ -259,13 +299,77 @@ class VEDirectPnP_MPPTDeviceData {
   }
 
 }
+class VEDirectPnP_SmartShuntDeviceData {
+  constructor(VEDirectRawData, deviceSN) {
+    //VE.Direct -> BMVDeviceData properties mapping
+    const data = new VEDirectData(VEDirectRawData);
+    this.deviceName = getDeviceName(data["PID"]);
+    this.deviceSN = deviceSN;
+    this.deviceType = DeviceType[2];
+    this.deviceFirmwareVersion = getDeviceFW(data);
+    this.batteryVoltage = data["V"] / 1000; //mV -> V
+
+    this.batteryMinimumVoltage = data["H7"] / 1000; //mV -> V
+
+    this.batteryMaximumVoltage = data["H8"] / 1000; //mV -> V
+
+    this.batteryCurrent = data["I"] / 1000; //mA -> A
+
+    this.batteryCurrentDeepestDischarge = data["H1"] / 1000; //mAh -> Ah
+
+    this.batteryCurrentLatestDischarge = data["H2"] / 1000; //mAh -> Ah
+
+    this.batteryCurrentAverageDischarge = data["H3"] / 1000; //mAh -> Ah
+
+    this.batteryPower = data["P"]; //W
+
+    this.stateOfCharge = data["SOC"] / 1000; //%
+
+    this.monitorType = MonitorType[data["MON"]];
+    this.temperature = data["T"]; //celsius
+
+    this.hoursPowerRemaining = getRemainingTime(data["TTG"]); //minutes -> hours
+
+    this.hoursSinceFullCharge = data["H9"] / 3600; //seconds -> hours
+
+    this.alarmState = getStringBoolean(data["Alarm"]);
+    this.alarmReason = AlarmReasonMessage[data["AR"]];
+    this.batteryCycles = data["H4"];
+    this.batteryFullCycles = data["H5"];
+    this.batteryConsumedAmpHours = data["CE"] / 1000; //mAh -> Ah
+
+    this.batteryCumulativeAmpHours = data["H6"] / 1000; //mAh -> Ah
+
+    this.totalDischargeHours = data["H17"] / 100; //kWh
+
+    this.totalChargeHours = data["H18"] / 100; //kWh
+
+    this.batterySyncs = data["H10"];
+    this.auxiliaryVoltage = data["VS"] / 1000; //mV -> V
+
+    this.auxiliaryMinimumVoltage = data["H15"] / 1000; //mV -> V
+
+    this.auxiliaryMaximumVoltage = data["H16"] / 1000; //mV -> V
+
+    this.batteryMidpointVoltage = data["VM"] / 1000; //mV -> V
+
+    this.batteryMidpointDeviation = data["DM"] / 1000; //%
+
+    this.alarmLowBatteryCount = data["H11"];
+    this.alarmHighBatteryCount = data["H12"];
+    this.alarmLowAuxiliaryCount = data["H13"];
+    this.alarmHighAuxiliaryCount = data["H14"];
+    this.VEDirectData = data;
+  }
+
+}
 
 function getDeviceName(pid) {
   if (deviceName[pid]) {
     return deviceName[pid];
   }
 
-  return "Unknow Victron Device";
+  return "Unknown Victron Device";
 }
 
 function getDeviceFW(VEDirectData) {
@@ -277,15 +381,21 @@ function getStringBoolean(stringBoolean) {
   return stringBoolean === "ON" || stringBoolean === "On";
 }
 
+function getRemainingTime(time) {
+  return time > 0 ? time / 60 : null;
+}
+
 class VEDirectPnP {
   constructor({
     VEDirectDevicesPath = "/dev/serial/by-id/",
-    customVEDirectDevicesPaths = []
+    customVEDirectDevicesPaths = [],
+    fallbackSerialNumber = false
   } = {}) {
     this.version = 0.05;
     this.parameters = {
       VEDirectDevicesPath,
-      customVEDirectDevicesPaths
+      customVEDirectDevicesPaths,
+      fallbackSerialNumber
     };
     this.listenersStack = [];
     this.devicesVEDirectData = {};
@@ -313,7 +423,7 @@ class VEDirectPnP {
   }
 
   getVictronDeviceSN(VEDirectData) {
-    return VEDirectData["SER#"];
+    return VEDirectData["SER#"] ? VEDirectData["SER#"] : this.parameters.fallbackSerialNumber;
   }
 
   mapVictronDeviceData(devicesData) {
@@ -324,6 +434,8 @@ class VEDirectPnP {
 
       if (!isNaN(deviceData["MPPT"])) {
         devicesDataMapped[deviceSN] = new VEDirectPnP_MPPTDeviceData(deviceData);
+      } else if (deviceData["BMV"] && deviceData["BMV"].match(/SmartShunt/)) {
+        devicesDataMapped[deviceSN] = new VEDirectPnP_SmartShuntDeviceData(deviceData, deviceSN);
       } else {
         devicesDataMapped[deviceSN] = new VEDirectPnP_UnsupportedDeviceData(deviceData);
       }
@@ -410,8 +522,9 @@ class VEDirectPnP {
       return;
     }
 
+    const cachedDeviceData = this.devicesVEDirectData[serialNumber] || {};
     this.devicesVEDirectData = Object.assign(Object.assign({}, this.devicesVEDirectData), {
-      [serialNumber]: Object.assign(Object.assign({}, VEDirectRawData), {
+      [serialNumber]: Object.assign(Object.assign(Object.assign({}, cachedDeviceData), VEDirectRawData), {
         dataTimeStamp: new Date().getTime()
       })
     });

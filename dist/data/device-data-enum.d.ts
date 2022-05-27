@@ -12,7 +12,7 @@ export declare enum StatusMessage {
     "Starting-up" = 245,
     "Repeated absorption" = 246,
     "Auto equalize / Recondition" = 247,
-    "BatterySafe" = 247,
+    "BatterySafe" = 248,
     "External Control" = 252
 }
 export declare enum ErrorMessage {
@@ -54,9 +54,40 @@ export declare enum OffReasonMessage {
     "Engine shutdown detection" = 80,
     "Analysing input voltage" = 100
 }
+export declare enum AlarmReasonMessage {
+    "" = 0,
+    "Low Voltage" = 1,
+    "High Voltage" = 2,
+    "Low SOC" = 4,
+    "Low Starter Voltage" = 8,
+    "High Starter Voltage" = 16,
+    "Low Temperature" = 32,
+    "High Temperature" = 64,
+    "Mid Voltage" = 128
+}
 export declare enum DeviceType {
     "MPPT" = 0,
     "Inverter" = 1,
     "BMV" = 2,
     "Charger" = 3
+}
+export declare enum MonitorType {
+    "Solar charger" = -9,
+    "Wind turbine" = -8,
+    "Shaft generator" = -7,
+    "Alternator" = -6,
+    "Fuel cell" = -5,
+    "Water generator" = -4,
+    "DC/DC charger" = -3,
+    "AC charger" = -2,
+    "Generic source" = -1,
+    "Battery monitor (BMV)" = 0,
+    "Generic load" = 1,
+    "Electric drive" = 2,
+    "Fridge" = 3,
+    "Water pump" = 4,
+    "Bilge pump" = 5,
+    "DC System" = 6,
+    "Inverter" = 7,
+    "Water heater" = 8
 }

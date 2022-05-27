@@ -67,6 +67,10 @@ const deviceName: { [key: number]: string } = {
     41235: "BlueSolar MPPT VE.Can 250/100",
     41236: "SmartSolar MPPT VE.Can 250/70 rev2",
     41237: "SmartSolar MPPT VE.Can 250/100 rev2",
-    41238: "SmartSolar MPPT VE.Can 250/85 rev2"
+    41238: "SmartSolar MPPT VE.Can 250/85 rev2",
+    41865: "SmartShunt 500A/50mV",
+    41866: "SmartShunt 1000A/50mV",
+    41867: "SmartShunt 2000A/50mV"
+
 }
 export default deviceName;

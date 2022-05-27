@@ -1,7 +1,7 @@
 import { Transform } from "stream";
 
 export class VEDirectData {
-  //Protocol version 3.29 (20 July 2020)
+  //Protocol version 3.32 (30 July 2021)
   V: number;
   V2?: number;
   V3?: number;
@@ -15,6 +15,7 @@ export class VEDirectData {
   I3?: number;
   IL?: number;
   P?: number;
+  T?: number;
   CE?: number
   SOC?: number;
   TTG?: number;
@@ -51,6 +52,7 @@ export class VEDirectData {
   PID?: number;
   HSDS?: number;
   MODE?: number;
+  MON?: number;
   AC_OUT_V?: number;
   AC_OUT_I?: number;
   AC_OUT_S?: number;

@@ -3,6 +3,7 @@ import { IVEDirectPnP_DeviceData } from "./device-data";
 interface IVEDirectPnP_Parameters {
     VEDirectDevicesPath?: string;
     customVEDirectDevicesPaths?: Array<string>;
+    fallbackSerialNumber?: any;
 }
 interface IVEDirectPnP_EventData {
     message?: string;
@@ -19,9 +20,10 @@ export default class VEDirectPnP {
     };
     serialPorts: Array<SerialPort>;
     fluidModeReady: boolean;
-    constructor({ VEDirectDevicesPath, customVEDirectDevicesPaths }?: {
+    constructor({ VEDirectDevicesPath, customVEDirectDevicesPaths, fallbackSerialNumber }?: {
         VEDirectDevicesPath?: string;
         customVEDirectDevicesPaths?: any[];
+        fallbackSerialNumber?: boolean;
     });
     on(event: string, callback: Function): void;
     emitEvent(event: string, eventData?: IVEDirectPnP_EventData): void;

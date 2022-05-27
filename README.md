@@ -3,6 +3,10 @@ A plug and play way to easily read data from your connected Victron VE.Direct de
 
 ## Changelog
 ```
+0.0.7: [Feature]
+--Ability to use with devices with no passed serial number
+--Added support for Victron SmartShunt devices
+-
 0.0.6: [Feature]
 --Added all methods, constructor parameters and events documentation on README.md
 -
@@ -125,10 +129,13 @@ dataReader.on("error", (error) => {
 By default "/dev/serial/by-id/", the path where the VE.Direct interfaces will be searched
 ### Optional customVEDirectDevicesPaths?: Array<string>
 Manually sets the VE.Direct interfaces paths
+### Optional fallbackSerialNumber?: string
+Manually sets a fallback serial number for any VE.Direct device detected without one. This options is necessary for connecting to devices such as Victron SmartShunt.
 ```javascript
 new VEDirectPnP({
     veDirectDevicesPath: "/dev/serial/by-id/", 
-    customVEDirectDevicesPaths: ["/dev/serial/by-id/usb-VictronEnergy_BV_VE_Direct_cable_VE83Y8X8-if00-port0"]
+    customVEDirectDevicesPaths: ["/dev/serial/by-id/usb-VictronEnergy_BV_VE_Direct_cable_VE83Y8X8-if00-port0"],
+    fallbackSerialNumber: "HQ2141DJ7FU"
 });
 ```
 
