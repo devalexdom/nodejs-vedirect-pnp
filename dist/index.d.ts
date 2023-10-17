@@ -1,3 +1,4 @@
+import { VEDirectData } from "./ve-direct";
 import SerialPort from "serialport";
 import { IVEDirectPnP_DeviceData } from "./device-data";
 interface IVEDirectPnP_Parameters {
@@ -25,7 +26,7 @@ export default class VEDirectPnP {
     });
     on(event: string, callback: Function): void;
     emitEvent(event: string, eventData?: IVEDirectPnP_EventData): void;
-    getVictronDeviceSN(VEDirectData: Object): any;
+    getVictronDeviceSN(VEDirectData: VEDirectData, VEDirectDevicePath: string, deviceIndex: number): string;
     mapVictronDeviceData(devicesData: {
         [key: string]: Object;
     }): {
@@ -39,9 +40,9 @@ export default class VEDirectPnP {
     getDevicesData(): {
         [key: string]: IVEDirectPnP_DeviceData;
     };
-    updateVEDirectDataDeviceData(VEDirectRawData: any): void;
+    updateVEDirectDataDeviceData(VEDirectRawData: VEDirectData, devicePath: string, deviceIndex: number): void;
     getVEDirectDevicesAvailable(): Promise<string[]>;
     initVEDirectDataStreamFromAllDevices(): Promise<void>;
-    initDataStreamFromVEDirect(devicePath: any): Promise<void>;
+    initDataStreamFromVEDirect(devicePath: string, deviceIndex: number): Promise<void>;
 }
 export {};

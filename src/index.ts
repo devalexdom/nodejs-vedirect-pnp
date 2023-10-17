@@ -1,9 +1,9 @@
 declare const Buffer; //To silence TypeScript bug? in Buffer.from(-->[0x0d, 0x0a]<--) Maybe I gonna need some help here...
 
 import { exec } from "child_process";
-import { VEDirectParser } from "./ve-direct";
+import { VEDirectData, VEDirectParser } from "./ve-direct";
 import SerialPort from "serialport";
-import { VEDirectPnP_MPPTDeviceData, VEDirectPnP_UnsupportedDeviceData, IVEDirectPnP_DeviceData } from "./device-data";
+import { VEDirectPnP_MPPTDeviceData, VEDirectPnP_UnsupportedDeviceData, IVEDirectPnP_DeviceData, VEDirectPnP_BMVDeviceData } from "./device-data";
 
 
 interface IVEDirectPnP_Parameters {
@@ -27,7 +27,7 @@ export default class VEDirectPnP {
   serialPorts: Array<SerialPort>;
   fluidModeReady: boolean;
   constructor({ VEDirectDevicesPath = "/dev/serial/by-id/", customVEDirectDevicesPaths = [] } = {}) {
-    this.version = 0.05;
+    this.version = 0.10;
     this.parameters = {
       VEDirectDevicesPath,
       customVEDirectDevicesPaths
@@ -54,8 +54,18 @@ export default class VEDirectPnP {
     }
   }
 
-  getVictronDeviceSN(VEDirectData: Object) {
-    return VEDirectData["SER#"];
+  getVictronDeviceSN(VEDirectData: VEDirectData, VEDirectDevicePath: string, deviceIndex: number) {
+    const deviceSerialNumber = VEDirectData["SER#"];
+    if (deviceSerialNumber) {
+      return deviceSerialNumber;
+    }
+    else {
+      const vedirectSerialNumber = VEDirectDevicePath?.match(/Direct_cable_([^-]+)/)[1];
+      if (vedirectSerialNumber) {
+        return vedirectSerialNumber;
+      }
+    }
+    return `unknown_id_victron_device-${deviceIndex}`;
   }
 
   mapVictronDeviceData(devicesData: { [key: string]: Object }): { [key: string]: IVEDirectPnP_DeviceData } {
@@ -64,6 +74,9 @@ export default class VEDirectPnP {
       const deviceData = devicesData[deviceSN];
       if (!isNaN(deviceData["MPPT"])) {
         devicesDataMapped[deviceSN] = new VEDirectPnP_MPPTDeviceData(deviceData);
+      }
+      else if (!isNaN(deviceData["SOC"])) {
+        devicesDataMapped[deviceSN] = new VEDirectPnP_BMVDeviceData(deviceData);
       }
       else {
         devicesDataMapped[deviceSN] = new VEDirectPnP_UnsupportedDeviceData(deviceData);
@@ -142,8 +155,8 @@ export default class VEDirectPnP {
     return this.mapVictronDeviceData(this.devicesVEDirectData);
   }
 
-  updateVEDirectDataDeviceData(VEDirectRawData) {
-    const serialNumber = this.getVictronDeviceSN(VEDirectRawData);
+  updateVEDirectDataDeviceData(VEDirectRawData: VEDirectData, devicePath: string, deviceIndex: number) {
+    const serialNumber = this.getVictronDeviceSN(VEDirectRawData, devicePath, deviceIndex);
     if (!serialNumber) {
       this.emitEvent("error", {
         message: "Device does not have a valid serial number.",
@@ -151,10 +164,13 @@ export default class VEDirectPnP {
       });
       return;
     }
+
+    const previousVEDirectRawData = this.devicesVEDirectData[serialNumber] ?? {};
+
     this.devicesVEDirectData = {
       ...this.devicesVEDirectData,
       [serialNumber]: {
-        ...VEDirectRawData, ...{ dataTimeStamp: new Date().getTime() }
+        ...previousVEDirectRawData, ...{ ...VEDirectRawData, dataTimeStamp: new Date().getTime() }
       }
     };
   }
@@ -189,7 +205,7 @@ export default class VEDirectPnP {
   initVEDirectDataStreamFromAllDevices() {
     return new Promise<void>((resolve, reject) => {
       if (this.parameters.customVEDirectDevicesPaths && this.parameters.customVEDirectDevicesPaths.length > 0) {
-        const devicesPromises = this.parameters.customVEDirectDevicesPaths.map(devicePath => this.initDataStreamFromVEDirect(devicePath));
+        const devicesPromises = this.parameters.customVEDirectDevicesPaths.map((devicePath, deviceIndex) => this.initDataStreamFromVEDirect(devicePath, deviceIndex));
         Promise.all(devicesPromises).then(() => {
           resolve();
         }).catch(() => {
@@ -198,7 +214,7 @@ export default class VEDirectPnP {
       }
       else {
         this.getVEDirectDevicesAvailable().then((devicesPathsFound) => {
-          const devicesPromises = devicesPathsFound.map(devicePath => this.initDataStreamFromVEDirect(devicePath));
+          const devicesPromises = devicesPathsFound.map((devicePath, deviceIndex) => this.initDataStreamFromVEDirect(devicePath, deviceIndex));
           Promise.all(devicesPromises).then(() => {
             resolve();
           });
@@ -209,7 +225,7 @@ export default class VEDirectPnP {
     });
   }
 
-  initDataStreamFromVEDirect(devicePath) {
+  initDataStreamFromVEDirect(devicePath: string, deviceIndex: number) {
     return new Promise<void>((resolve, reject) => {
       const port = new SerialPort(devicePath, {
         baudRate: 19200,
@@ -254,10 +270,10 @@ export default class VEDirectPnP {
       port.pipe(delimiter).pipe(VEDParser);
 
       VEDParser.on("data", (VEDirectRawData) => {
-        if (!this.devicesVEDirectData[this.getVictronDeviceSN(VEDirectRawData)]) {
+        if (!this.devicesVEDirectData[this.getVictronDeviceSN(VEDirectRawData, devicePath, deviceIndex)]) {
           resolve();
         }
-        this.updateVEDirectDataDeviceData(VEDirectRawData);
+        this.updateVEDirectDataDeviceData(VEDirectRawData, devicePath, deviceIndex);
       });
     });
   }

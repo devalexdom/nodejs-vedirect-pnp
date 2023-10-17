@@ -59,7 +59,12 @@ export declare class VEDirectData {
     Relay?: string;
     Alarm?: string;
     LOAD?: string;
+    T?: number;
     dataTimeStamp: number;
+    MON?: any;
+    DC_IN_V?: number;
+    DC_IN_I?: number;
+    DC_IN_P?: number;
     constructor(VEDirectRawData: Object);
 }
 export declare class VEDirectParser extends Transform {
