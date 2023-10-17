@@ -1,7 +1,7 @@
 import { Transform } from "stream";
 
 export class VEDirectData {
-  //Protocol version 3.29 (20 July 2020)
+  //Protocol version 3.33 (06 June 2023)
   V: number;
   V2?: number;
   V3?: number;
@@ -60,7 +60,12 @@ export class VEDirectData {
   Relay?: string;
   Alarm?: string;
   LOAD?: string;
+  T?: number;
   dataTimeStamp: number;
+  MON?: any;
+  DC_IN_V?: number;
+  DC_IN_I?: number;
+  DC_IN_P?: number;
 
   constructor(VEDirectRawData: Object) {
     for (const key in VEDirectRawData) {
