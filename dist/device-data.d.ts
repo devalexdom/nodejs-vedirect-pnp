@@ -67,6 +67,7 @@ export declare class MPPTDeviceData implements VEDirectPnPDeviceData {
     deviceFirmwareVersion: number;
     batteryVoltage: number;
     batteryCurrent: number;
+    batteryChargingPower: number;
     statusMessage: string;
     errorMessage: string;
     mpptMessage: string;

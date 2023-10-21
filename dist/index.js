@@ -363,7 +363,7 @@ class BMVDeviceData {
         this.batteryChargingCurrent = this.batteryCurrent > 0 ? this.batteryCurrent : 0;
         this.batteryDischargingCurrent = this.batteryCurrent < 0 ? Math.abs(this.batteryCurrent) : 0;
         this.batteryPercentage = getNullableNumber(data.SOC) / 10;
-        this.batteryInstantaneousPower = getNullableNumber(data.P) / 1000;
+        this.batteryInstantaneousPower = getNullableNumber(data.P); //W
         this.batteryTemperature = getNullableNumber(data.T); //Celsius
         this.consumedAmpHours = getNullableNumber(data.CE) / 1000;
         this.relayState = getStringBoolean(data.Relay);
@@ -399,6 +399,7 @@ class MPPTDeviceData {
     deviceFirmwareVersion;
     batteryVoltage;
     batteryCurrent;
+    batteryChargingPower;
     statusMessage;
     errorMessage;
     mpptMessage;
@@ -427,6 +428,7 @@ class MPPTDeviceData {
         this.deviceFirmwareVersion = getDeviceFW(data);
         this.batteryVoltage = data["V"] / 1000; //mV -> V
         this.batteryCurrent = data["I"] / 1000; //mA -> A
+        this.batteryChargingPower = (this.batteryVoltage * this.batteryCurrent); // W
         this.statusMessage = StatusMessage[data["CS"]];
         this.errorMessage = ErrorMessage[data["ERR"]];
         this.mpptMessage = MPPTMessage[data["MPPT"]];
@@ -485,7 +487,7 @@ class VEDirectPnP {
         this.#flags = {
             requestedInit: false,
             initialized: false,
-            deviceRelationsSet: false
+            deviceRelationsSetCount: 0
         };
         this.#deviceRelations = deviceRelations ?? {};
         this.init();
@@ -644,7 +646,7 @@ class VEDirectPnP {
             ...this.#VEDirectDevicesDataMapped,
             [deviceId]: deviceNewDataMapped
         };
-        if (!this.#flags.deviceRelationsSet) {
+        if (this.#flags.deviceRelationsSetCount < Object.keys(this.#VEDirectDevicesData).length) {
             this.#setDeviceRelations();
         }
     }
@@ -667,7 +669,7 @@ class VEDirectPnP {
             newDeviceRelations.mainChargerDeviceId = chargerDeviceId;
         }
         this.#deviceRelations = newDeviceRelations;
-        this.#flags = { ...this.#flags, deviceRelationsSet: true };
+        this.#flags = { ...this.#flags, deviceRelationsSetCount: this.#flags.deviceRelationsSetCount + 1 };
     }
     #getVEDirectDevicesAvailable() {
         return new Promise((resolve, reject) => {

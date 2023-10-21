@@ -87,7 +87,7 @@ export class BMVDeviceData implements VEDirectPnPDeviceData {
         this.batteryChargingCurrent = this.batteryCurrent > 0 ? this.batteryCurrent : 0;
         this.batteryDischargingCurrent = this.batteryCurrent < 0 ? Math.abs(this.batteryCurrent) : 0;
         this.batteryPercentage = getNullableNumber(data.SOC) / 10;
-        this.batteryInstantaneousPower = getNullableNumber(data.P) / 1000;
+        this.batteryInstantaneousPower = getNullableNumber(data.P); //W
         this.batteryTemperature = getNullableNumber(data.T); //Celsius
         this.consumedAmpHours = getNullableNumber(data.CE) / 1000;
         this.relayState = getStringBoolean(data.Relay);
@@ -124,6 +124,7 @@ export class MPPTDeviceData implements VEDirectPnPDeviceData {
     deviceFirmwareVersion: number;
     batteryVoltage: number;
     batteryCurrent: number;
+    batteryChargingPower: number;
     statusMessage: string;
     errorMessage: string;
     mpptMessage: string;
@@ -152,6 +153,7 @@ export class MPPTDeviceData implements VEDirectPnPDeviceData {
         this.deviceFirmwareVersion = getDeviceFW(data);
         this.batteryVoltage = data["V"] / 1000; //mV -> V
         this.batteryCurrent = data["I"] / 1000; //mA -> A
+        this.batteryChargingPower = (this.batteryVoltage * this.batteryCurrent); // W
         this.statusMessage = StatusMessage[data["CS"]];
         this.errorMessage = ErrorMessage[data["ERR"]];
         this.mpptMessage = MPPTMessage[data["MPPT"]];

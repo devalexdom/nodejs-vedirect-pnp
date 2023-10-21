@@ -20,7 +20,7 @@ interface VEDirectPnPEventData {
 interface VEDirectPnPFlags {
   requestedInit: boolean;
   initialized: boolean;
-  deviceRelationsSet: boolean;
+  deviceRelationsSetCount: number;
 }
 interface VEDirectPnPDeviceRelations {
   mainBatteryDeviceId?: string;
@@ -51,7 +51,7 @@ export default class VEDirectPnP {
     this.#flags = {
       requestedInit: false,
       initialized: false,
-      deviceRelationsSet: false
+      deviceRelationsSetCount: 0
     }
     this.#deviceRelations = deviceRelations ?? {};
     this.init();
@@ -237,7 +237,7 @@ export default class VEDirectPnP {
       [deviceId]: deviceNewDataMapped
     };
 
-    if (!this.#flags.deviceRelationsSet) {
+    if (this.#flags.deviceRelationsSetCount < Object.keys(this.#VEDirectDevicesData).length) {
       this.#setDeviceRelations();
     }
   }
@@ -261,7 +261,7 @@ export default class VEDirectPnP {
       newDeviceRelations.mainChargerDeviceId = chargerDeviceId;
     }
     this.#deviceRelations = newDeviceRelations;
-    this.#flags = { ... this.#flags, deviceRelationsSet: true };
+    this.#flags = { ... this.#flags, deviceRelationsSetCount: this.#flags.deviceRelationsSetCount + 1 };
   }
 
   #getVEDirectDevicesAvailable() {
