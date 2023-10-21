@@ -61,6 +61,7 @@ class VEDirectParser extends stream.Transform {
 
 const deviceName = {
   768: "BlueSolar MPPT 70|15",
+  41087: "All-In-1 SmartSolar MPPT 75/15 12V",
   41024: "BlueSolar MPPT 75|50",
   41025: "BlueSolar MPPT 150|35",
   41026: "BlueSolar MPPT 75|15",
@@ -74,6 +75,7 @@ const deviceName = {
   41035: "BlueSolar MPPT 150|35 rev2",
   41036: "BlueSolar MPPT 75|10",
   41037: "BlueSolar MPPT 150|45",
+  41074: "BlueSolar MPPT 150/45 rev3",
   41038: "BlueSolar MPPT 150|60",
   41039: "BlueSolar MPPT 150|85",
   41040: "SmartSolar MPPT 250|100",
@@ -110,6 +112,7 @@ const deviceName = {
   41071: "BlueSolar MPPT 150|45 rev2",
   41072: "BlueSolar MPPT 150|60 rev2",
   41073: "BlueSolar MPPT 150|70 rev2",
+  41075: "SmartSolar MPPT 150/45 rev3",
   41218: "SmartSolar MPPT VE.Can 150/70",
   41219: "SmartSolar MPPT VE.Can 150/45",
   41220: "SmartSolar MPPT VE.Can 150/60",
@@ -128,7 +131,15 @@ const deviceName = {
   41235: "BlueSolar MPPT VE.Can 250/100",
   41236: "SmartSolar MPPT VE.Can 250/70 rev2",
   41237: "SmartSolar MPPT VE.Can 250/100 rev2",
-  41238: "SmartSolar MPPT VE.Can 250/85 rev2"
+  41238: "SmartSolar MPPT VE.Can 250/85 rev2",
+  41239: "BlueSolar MPPT VE.Can 150/100 rev2",
+  41968: "Smart BuckBoost 12V/12V-50A",
+  41865: "SmartShunt 500A/50mV",
+  41866: "SmartShunt 1000A/50mV",
+  41867: "SmartShunt 2000A/50mV",
+  41857: "BMV-712 Smart",
+  41858: "BMV-710H Smart",
+  41859: "BMV-712 Smart Rev2"
 };
 
 var StatusMessage;
@@ -184,6 +195,35 @@ var MPPTMessage;
   MPPTMessage[MPPTMessage["MPP Tracker active"] = 2] = "MPP Tracker active";
 })(MPPTMessage || (MPPTMessage = {}));
 
+var AlarmReasonMessage;
+
+(function (AlarmReasonMessage) {
+  AlarmReasonMessage[AlarmReasonMessage[""] = 0] = "";
+  AlarmReasonMessage[AlarmReasonMessage["Low Voltage"] = 1] = "Low Voltage";
+  AlarmReasonMessage[AlarmReasonMessage["High Voltage"] = 2] = "High Voltage";
+  AlarmReasonMessage[AlarmReasonMessage["Low SOC"] = 4] = "Low SOC";
+  AlarmReasonMessage[AlarmReasonMessage["Low Starter Voltage"] = 8] = "Low Starter Voltage";
+  AlarmReasonMessage[AlarmReasonMessage["High Starter Voltage"] = 16] = "High Starter Voltage";
+  AlarmReasonMessage[AlarmReasonMessage["Low Temperature"] = 32] = "Low Temperature";
+  AlarmReasonMessage[AlarmReasonMessage["High Temperature"] = 64] = "High Temperature";
+  AlarmReasonMessage[AlarmReasonMessage["Mid Voltage"] = 128] = "Mid Voltage";
+  AlarmReasonMessage[AlarmReasonMessage["Overload"] = 256] = "Overload";
+  AlarmReasonMessage[AlarmReasonMessage["DC-ripple"] = 512] = "DC-ripple";
+  AlarmReasonMessage[AlarmReasonMessage["Low V AC out"] = 1024] = "Low V AC out";
+  AlarmReasonMessage[AlarmReasonMessage["High V AC out"] = 2048] = "High V AC out";
+  AlarmReasonMessage[AlarmReasonMessage["Short Circuit"] = 4096] = "Short Circuit";
+  AlarmReasonMessage[AlarmReasonMessage["BMS Lockout"] = 8192] = "BMS Lockout";
+})(AlarmReasonMessage || (AlarmReasonMessage = {}));
+
+var DeviceType;
+
+(function (DeviceType) {
+  DeviceType[DeviceType["MPPT"] = 0] = "MPPT";
+  DeviceType[DeviceType["Inverter"] = 1] = "Inverter";
+  DeviceType[DeviceType["BMV"] = 2] = "BMV";
+  DeviceType[DeviceType["Charger"] = 3] = "Charger";
+})(DeviceType || (DeviceType = {}));
+
 var OffReasonMessage;
 
 (function (OffReasonMessage) {
@@ -199,21 +239,65 @@ var OffReasonMessage;
   OffReasonMessage[OffReasonMessage["Analysing input voltage"] = 100] = "Analysing input voltage";
 })(OffReasonMessage || (OffReasonMessage = {}));
 
-var DeviceType;
-
-(function (DeviceType) {
-  DeviceType[DeviceType["MPPT"] = 0] = "MPPT";
-  DeviceType[DeviceType["Inverter"] = 1] = "Inverter";
-  DeviceType[DeviceType["BMV"] = 2] = "BMV";
-  DeviceType[DeviceType["Charger"] = 3] = "Charger";
-})(DeviceType || (DeviceType = {}));
-
 class VEDirectPnP_UnsupportedDeviceData {
   constructor(VEDirectRawData) {
-    //VE.Direct -> UnsupportedDeviceData properties mapping
+    var _a; //VE.Direct -> UnsupportedDeviceData properties mapping
+
+
     const data = new VEDirectData(VEDirectRawData);
     this.deviceName = getDeviceName(data["PID"]);
-    this.deviceSN = data["SER#"];
+    this.deviceSN = (_a = data["SER#"]) !== null && _a !== void 0 ? _a : "Unknown";
+    this.VEDirectData = data;
+  }
+
+}
+class VEDirectPnP_BMVDeviceData {
+  constructor(VEDirectRawData) {
+    var _a; //VE.Direct -> MPPTDeviceData properties mapping
+
+
+    const data = new VEDirectData(VEDirectRawData);
+    this.deviceName = getDeviceName(data["PID"]);
+    this.deviceSN = (_a = data["SER#"]) !== null && _a !== void 0 ? _a : "Unknown";
+    this.deviceType = DeviceType[2];
+    this.deviceFirmwareVersion = getDeviceFW(data);
+    this.batteryMidPointVoltage = getNullableNumber(data.VM) / 1000; //mV -> V
+
+    this.batteryMidPointDeviation = getNullableNumber(data.DM) / 10;
+    this.batteryAuxVoltage = getNullableNumber(data.VS) / 1000; //mV -> V
+
+    this.batteryVoltage = getNullableNumber(data.V) / 1000; //mV -> V
+
+    this.batteryCurrent = getNullableNumber(data.I) / 1000; //mA -> A
+
+    this.batteryPercentage = getNullableNumber(data.SOC) / 10;
+    this.batteryInstantaneousPower = getNullableNumber(data.P) / 1000;
+    this.batteryTemperature = getNullableNumber(data.T); //Celsius
+
+    this.consumedAmpHours = getNullableNumber(data.CE) / 1000;
+    this.relayState = getStringBoolean(data.Relay);
+    this.deepestDischargeAmpHours = getNullableNumber(data.H1) / 1000;
+    this.lastDischargeAmpHours = getNullableNumber(data.H2) / 1000;
+    this.averageDischargeAmpHours = getNullableNumber(data.H3) / 1000;
+    this.chargeCycles = getNullableNumber(data.H4);
+    this.fullDischarges = getNullableNumber(data.H5);
+    this.cumulativeDrawnAmpHours = getNullableNumber(data.H6) / 1000;
+    this.batteryMinVoltage = getNullableNumber(data.H7) / 1000;
+    this.batteryMaxVoltage = getNullableNumber(data.H8) / 1000;
+    this.hoursSinceLastFullCharge = getNullableNumber(data.H9) / 3600;
+    this.automaticSynchronizations = getNullableNumber(data.H10);
+    this.lowMainVoltageAlarms = getNullableNumber(data.H11);
+    this.highMainVoltageAlarms = getNullableNumber(data.H12);
+    this.lowAuxVoltageAlarms = getNullableNumber(data.H13);
+    this.highAuxVoltageAlarms = getNullableNumber(data.H14);
+    this.batteryAuxMinVoltage = getNullableNumber(data.H15) / 1000;
+    this.batteryAuxMaxVoltage = getNullableNumber(data.H16) / 1000;
+    this.dischargedEnergy = getNullableNumber(data.H17) / 100; //KWh
+
+    this.chargedEnergy = getNullableNumber(data.H18) / 100; //KWh
+
+    this.alarmState = getStringBoolean(data.Alarm);
+    this.alarmMessage = AlarmReasonMessage[data.AR];
     this.VEDirectData = data;
   }
 
@@ -277,12 +361,16 @@ function getStringBoolean(stringBoolean) {
   return stringBoolean === "ON" || stringBoolean === "On";
 }
 
+function getNullableNumber(nullableNumber) {
+  return nullableNumber !== null && nullableNumber !== void 0 ? nullableNumber : 0;
+}
+
 class VEDirectPnP {
   constructor({
     VEDirectDevicesPath = "/dev/serial/by-id/",
     customVEDirectDevicesPaths = []
   } = {}) {
-    this.version = 0.05;
+    this.version = 0.10;
     this.parameters = {
       VEDirectDevicesPath,
       customVEDirectDevicesPaths
@@ -312,8 +400,20 @@ class VEDirectPnP {
     }
   }
 
-  getVictronDeviceSN(VEDirectData) {
-    return VEDirectData["SER#"];
+  getVictronDeviceSN(VEDirectData, VEDirectDevicePath, deviceIndex) {
+    const deviceSerialNumber = VEDirectData["SER#"];
+
+    if (deviceSerialNumber) {
+      return deviceSerialNumber;
+    } else {
+      const vedirectSerialNumber = VEDirectDevicePath === null || VEDirectDevicePath === void 0 ? void 0 : VEDirectDevicePath.match(/Direct_cable_([^-]+)/)[1];
+
+      if (vedirectSerialNumber) {
+        return vedirectSerialNumber;
+      }
+    }
+
+    return `unknown_id_victron_device-${deviceIndex}`;
   }
 
   mapVictronDeviceData(devicesData) {
@@ -324,6 +424,8 @@ class VEDirectPnP {
 
       if (!isNaN(deviceData["MPPT"])) {
         devicesDataMapped[deviceSN] = new VEDirectPnP_MPPTDeviceData(deviceData);
+      } else if (!isNaN(deviceData["SOC"])) {
+        devicesDataMapped[deviceSN] = new VEDirectPnP_BMVDeviceData(deviceData);
       } else {
         devicesDataMapped[deviceSN] = new VEDirectPnP_UnsupportedDeviceData(deviceData);
       }
@@ -399,8 +501,10 @@ class VEDirectPnP {
     return this.mapVictronDeviceData(this.devicesVEDirectData);
   }
 
-  updateVEDirectDataDeviceData(VEDirectRawData) {
-    const serialNumber = this.getVictronDeviceSN(VEDirectRawData);
+  updateVEDirectDataDeviceData(VEDirectRawData, devicePath, deviceIndex) {
+    var _a;
+
+    const serialNumber = this.getVictronDeviceSN(VEDirectRawData, devicePath, deviceIndex);
 
     if (!serialNumber) {
       this.emitEvent("error", {
@@ -410,10 +514,11 @@ class VEDirectPnP {
       return;
     }
 
+    const previousVEDirectRawData = (_a = this.devicesVEDirectData[serialNumber]) !== null && _a !== void 0 ? _a : {};
     this.devicesVEDirectData = Object.assign(Object.assign({}, this.devicesVEDirectData), {
-      [serialNumber]: Object.assign(Object.assign({}, VEDirectRawData), {
+      [serialNumber]: Object.assign(Object.assign({}, previousVEDirectRawData), Object.assign(Object.assign({}, VEDirectRawData), {
         dataTimeStamp: new Date().getTime()
-      })
+      }))
     });
   }
 
@@ -449,7 +554,7 @@ class VEDirectPnP {
   initVEDirectDataStreamFromAllDevices() {
     return new Promise((resolve, reject) => {
       if (this.parameters.customVEDirectDevicesPaths && this.parameters.customVEDirectDevicesPaths.length > 0) {
-        const devicesPromises = this.parameters.customVEDirectDevicesPaths.map(devicePath => this.initDataStreamFromVEDirect(devicePath));
+        const devicesPromises = this.parameters.customVEDirectDevicesPaths.map((devicePath, deviceIndex) => this.initDataStreamFromVEDirect(devicePath, deviceIndex));
         Promise.all(devicesPromises).then(() => {
           resolve();
         }).catch(() => {
@@ -457,7 +562,7 @@ class VEDirectPnP {
         });
       } else {
         this.getVEDirectDevicesAvailable().then(devicesPathsFound => {
-          const devicesPromises = devicesPathsFound.map(devicePath => this.initDataStreamFromVEDirect(devicePath));
+          const devicesPromises = devicesPathsFound.map((devicePath, deviceIndex) => this.initDataStreamFromVEDirect(devicePath, deviceIndex));
           Promise.all(devicesPromises).then(() => {
             resolve();
           });
@@ -468,7 +573,7 @@ class VEDirectPnP {
     });
   }
 
-  initDataStreamFromVEDirect(devicePath) {
+  initDataStreamFromVEDirect(devicePath, deviceIndex) {
     return new Promise((resolve, reject) => {
       const port = new SerialPort__default["default"](devicePath, {
         baudRate: 19200,
@@ -507,11 +612,11 @@ class VEDirectPnP {
       const VEDParser = new VEDirectParser();
       port.pipe(delimiter).pipe(VEDParser);
       VEDParser.on("data", VEDirectRawData => {
-        if (!this.devicesVEDirectData[this.getVictronDeviceSN(VEDirectRawData)]) {
+        if (!this.devicesVEDirectData[this.getVictronDeviceSN(VEDirectRawData, devicePath, deviceIndex)]) {
           resolve();
         }
 
-        this.updateVEDirectDataDeviceData(VEDirectRawData);
+        this.updateVEDirectDataDeviceData(VEDirectRawData, devicePath, deviceIndex);
       });
     });
   }

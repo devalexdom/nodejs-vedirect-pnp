@@ -46,6 +46,31 @@ export enum MPPTMessage {
     "MPP Tracker active" = 2,
 }
 
+export enum AlarmReasonMessage {
+    "" = 0,
+    "Low Voltage" = 1,
+    "High Voltage" = 2,
+    "Low SOC" = 4,
+    "Low Starter Voltage" = 8,
+    "High Starter Voltage" = 16,
+    "Low Temperature" = 32,
+    "High Temperature" = 64,
+    "Mid Voltage" = 128,
+    "Overload" = 256,
+    "DC-ripple" = 512,
+    "Low V AC out" = 1024,
+    "High V AC out" = 2048,
+    "Short Circuit" = 4096,
+    "BMS Lockout" = 8192,
+}
+
+export enum DeviceType {
+    "MPPT" = 0,
+    "Inverter" = 1,
+    "BMV" = 2,
+    "Charger" = 3
+}
+
 export enum OffReasonMessage {
     "" = 0,
     "No input power" = 1,
@@ -57,11 +82,4 @@ export enum OffReasonMessage {
     "BMS" = 40,
     "Engine shutdown detection" = 80,
     "Analysing input voltage" = 100,
-}
-
-export enum DeviceType {
-    "MPPT" = 0,
-    "Inverter" = 1,
-    "BMV" = 2,
-    "Charger" = 3
 }

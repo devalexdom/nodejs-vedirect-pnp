@@ -1,5 +1,6 @@
 const deviceName: { [key: number]: string } = {
     768: "BlueSolar MPPT 70|15",
+    41087: "All-In-1 SmartSolar MPPT 75/15 12V",
     41024: "BlueSolar MPPT 75|50",
     41025: "BlueSolar MPPT 150|35",
     41026: "BlueSolar MPPT 75|15",
@@ -13,6 +14,7 @@ const deviceName: { [key: number]: string } = {
     41035: "BlueSolar MPPT 150|35 rev2",
     41036: "BlueSolar MPPT 75|10",
     41037: "BlueSolar MPPT 150|45",
+    41074:"BlueSolar MPPT 150/45 rev3",
     41038: "BlueSolar MPPT 150|60",
     41039: "BlueSolar MPPT 150|85",
     41040: "SmartSolar MPPT 250|100",
@@ -49,6 +51,7 @@ const deviceName: { [key: number]: string } = {
     41071: "BlueSolar MPPT 150|45 rev2",
     41072: "BlueSolar MPPT 150|60 rev2",
     41073: "BlueSolar MPPT 150|70 rev2",
+    41075: "SmartSolar MPPT 150/45 rev3",
     41218: "SmartSolar MPPT VE.Can 150/70",
     41219: "SmartSolar MPPT VE.Can 150/45",
     41220: "SmartSolar MPPT VE.Can 150/60",
@@ -67,6 +70,14 @@ const deviceName: { [key: number]: string } = {
     41235: "BlueSolar MPPT VE.Can 250/100",
     41236: "SmartSolar MPPT VE.Can 250/70 rev2",
     41237: "SmartSolar MPPT VE.Can 250/100 rev2",
-    41238: "SmartSolar MPPT VE.Can 250/85 rev2"
+    41238: "SmartSolar MPPT VE.Can 250/85 rev2",
+    41239: "BlueSolar MPPT VE.Can 150/100 rev2",
+    41968: "Smart BuckBoost 12V/12V-50A",
+    41865: "SmartShunt 500A/50mV",
+    41866: "SmartShunt 1000A/50mV",
+    41867: "SmartShunt 2000A/50mV",
+    41857: "BMV-712 Smart",
+    41858: "BMV-710H Smart",
+    41859: "BMV-712 Smart Rev2",
 }
 export default deviceName;
