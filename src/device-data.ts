@@ -2,29 +2,40 @@ import deviceName from "./data/device-name";
 import { StatusMessage, ErrorMessage, MPPTMessage, DeviceType, OffReasonMessage, AlarmReasonMessage } from "./data/device-data-enum";
 import { VEDirectData } from "./ve-direct";
 
-export interface IVEDirectPnP_DeviceData {
+export interface VEDirectPnPDeviceData {
     deviceName: string;
-    deviceSN: string;
+    deviceType: string;
+    deviceId: string;
+    deviceSN?: string;
+    deviceVEAdapterSN: string;
     VEDirectData: VEDirectData;
 }
 
-export class VEDirectPnP_UnsupportedDeviceData implements IVEDirectPnP_DeviceData {
+export class UnsupportedDeviceData implements VEDirectPnPDeviceData {
     deviceName: string;
+    deviceType: string;
+    deviceId: string;
     deviceSN: string;
+    deviceVEAdapterSN: string;
     VEDirectData: VEDirectData;
-    constructor(VEDirectRawData) {
+    constructor(VEDirectRawData: VEDirectData, deviceId: string, deviceVEAdapterSN: string) {
         //VE.Direct -> UnsupportedDeviceData properties mapping
         const data = new VEDirectData(VEDirectRawData);
         this.deviceName = getDeviceName(data["PID"]);
-        this.deviceSN = data["SER#"] ?? "Unknown";
+        this.deviceId = deviceId;
+        this.deviceSN = data["SER#"] ?? null;
+        this.deviceVEAdapterSN = deviceVEAdapterSN;
+        this.deviceType = "Unsupported";
         this.VEDirectData = data;
     }
 }
 
-export class VEDirectPnP_BMVDeviceData implements IVEDirectPnP_DeviceData {
+export class BMVDeviceData implements VEDirectPnPDeviceData {
     deviceType: string;
     deviceName: string;
+    deviceId: string;
     deviceSN: string;
+    deviceVEAdapterSN: string;
     deviceFirmwareVersion: number;
     batteryMinVoltage: number;
     batteryMaxVoltage: number;
@@ -57,11 +68,13 @@ export class VEDirectPnP_BMVDeviceData implements IVEDirectPnP_DeviceData {
     alarmState: boolean;
     alarmMessage: string;
     VEDirectData: VEDirectData;
-    constructor(VEDirectRawData) {
+    constructor(VEDirectRawData: VEDirectData, deviceId: string, deviceVEAdapterSN: string) {
         //VE.Direct -> MPPTDeviceData properties mapping
         const data = new VEDirectData(VEDirectRawData);
         this.deviceName = getDeviceName(data["PID"]);
-        this.deviceSN = data["SER#"] ?? "Unknown";
+        this.deviceId = deviceId;
+        this.deviceSN = data["SER#"] ?? null;
+        this.deviceVEAdapterSN = deviceVEAdapterSN;
         this.deviceType = DeviceType[2];
         this.deviceFirmwareVersion = getDeviceFW(data);
         this.batteryMidPointVoltage = getNullableNumber(data.VM) / 1000; //mV -> V
@@ -98,10 +111,12 @@ export class VEDirectPnP_BMVDeviceData implements IVEDirectPnP_DeviceData {
     }
 }
 
-export class VEDirectPnP_MPPTDeviceData implements IVEDirectPnP_DeviceData {
+export class MPPTDeviceData implements VEDirectPnPDeviceData {
     deviceType: string;
     deviceName: string;
+    deviceId: string;
     deviceSN: string;
+    deviceVEAdapterSN: string;
     deviceFirmwareVersion: number;
     batteryVoltage: number;
     batteryCurrent: number;
@@ -122,11 +137,13 @@ export class VEDirectPnP_MPPTDeviceData implements IVEDirectPnP_DeviceData {
     offReasonMessage: string;
     daySequenceNumber: number;
     VEDirectData: VEDirectData;
-    constructor(VEDirectRawData) {
+    constructor(VEDirectRawData: VEDirectData, deviceId: string, deviceVEAdapterSN: string) {
         //VE.Direct -> MPPTDeviceData properties mapping
         const data = new VEDirectData(VEDirectRawData);
         this.deviceName = getDeviceName(data["PID"]);
+        this.deviceId = deviceId;
         this.deviceSN = data["SER#"];
+        this.deviceVEAdapterSN = deviceVEAdapterSN;
         this.deviceType = DeviceType[0];
         this.deviceFirmwareVersion = getDeviceFW(data);
         this.batteryVoltage = data["V"] / 1000; //mV -> V

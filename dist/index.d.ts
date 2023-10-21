@@ -1,48 +1,30 @@
-import { VEDirectData } from "./ve-direct";
-import SerialPort from "serialport";
-import { IVEDirectPnP_DeviceData } from "./device-data";
-interface IVEDirectPnP_Parameters {
-    VEDirectDevicesPath?: string;
-    customVEDirectDevicesPaths?: Array<string>;
-}
-interface IVEDirectPnP_EventData {
-    message?: string;
-    dataDump?: any;
-    eventName?: string;
+import { MPPTDeviceData, VEDirectPnPDeviceData, BMVDeviceData } from "./device-data";
+interface VEDirectPnPDeviceRelations {
+    mainBatteryDeviceId?: string;
+    mainMPPTDeviceId?: string;
+    mainInverterDeviceId?: string;
+    mainChargerDeviceId?: string;
 }
 export default class VEDirectPnP {
-    version: number;
-    parameters: IVEDirectPnP_Parameters;
-    currentEvent: string;
-    listenersStack: Array<Function>;
-    devicesVEDirectData: {
-        [key: string]: Object;
-    };
-    serialPorts: Array<SerialPort>;
-    fluidModeReady: boolean;
+    #private;
     constructor({ VEDirectDevicesPath, customVEDirectDevicesPaths }?: {
         VEDirectDevicesPath?: string;
         customVEDirectDevicesPaths?: any[];
-    });
-    on(event: string, callback: Function): void;
-    emitEvent(event: string, eventData?: IVEDirectPnP_EventData): void;
-    getVictronDeviceSN(VEDirectData: VEDirectData, VEDirectDevicePath: string, deviceIndex: number): string;
-    mapVictronDeviceData(devicesData: {
-        [key: string]: Object;
-    }): {
-        [key: string]: IVEDirectPnP_DeviceData;
-    };
+    }, deviceRelations?: VEDirectPnPDeviceRelations);
     init(): void;
-    clean(): void;
-    reset(): void;
-    closeSerialPorts(): Promise<void>;
+    on(event: string, callback: Function): void;
+    getVersion(): number;
     destroy(callback?: Function): void;
     getDevicesData(): {
-        [key: string]: IVEDirectPnP_DeviceData;
+        [key: string]: VEDirectPnPDeviceData;
     };
-    updateVEDirectDataDeviceData(VEDirectRawData: VEDirectData, devicePath: string, deviceIndex: number): void;
-    getVEDirectDevicesAvailable(): Promise<string[]>;
-    initVEDirectDataStreamFromAllDevices(): Promise<void>;
-    initDataStreamFromVEDirect(devicePath: string, deviceIndex: number): Promise<void>;
+    getBatteriesData(): VEDirectPnPDeviceData[];
+    getBatteryData(deviceId?: string): BMVDeviceData;
+    getMPPTData(deviceId?: string): MPPTDeviceData;
+    getInvertersData(): VEDirectPnPDeviceData[];
+    getChargersData(): VEDirectPnPDeviceData[];
+    getMPPTsData(): VEDirectPnPDeviceData[];
+    getDevicesDataByType(deviceType: string): VEDirectPnPDeviceData[];
+    reset(): void;
 }
 export {};

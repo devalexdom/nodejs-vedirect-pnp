@@ -1,19 +1,27 @@
 import { VEDirectData } from "./ve-direct";
-export interface IVEDirectPnP_DeviceData {
+export interface VEDirectPnPDeviceData {
     deviceName: string;
-    deviceSN: string;
+    deviceType: string;
+    deviceId: string;
+    deviceSN?: string;
+    deviceVEAdapterSN: string;
     VEDirectData: VEDirectData;
 }
-export declare class VEDirectPnP_UnsupportedDeviceData implements IVEDirectPnP_DeviceData {
+export declare class UnsupportedDeviceData implements VEDirectPnPDeviceData {
     deviceName: string;
+    deviceType: string;
+    deviceId: string;
     deviceSN: string;
+    deviceVEAdapterSN: string;
     VEDirectData: VEDirectData;
-    constructor(VEDirectRawData: any);
+    constructor(VEDirectRawData: VEDirectData, deviceId: string, deviceVEAdapterSN: string);
 }
-export declare class VEDirectPnP_BMVDeviceData implements IVEDirectPnP_DeviceData {
+export declare class BMVDeviceData implements VEDirectPnPDeviceData {
     deviceType: string;
     deviceName: string;
+    deviceId: string;
     deviceSN: string;
+    deviceVEAdapterSN: string;
     deviceFirmwareVersion: number;
     batteryMinVoltage: number;
     batteryMaxVoltage: number;
@@ -46,12 +54,14 @@ export declare class VEDirectPnP_BMVDeviceData implements IVEDirectPnP_DeviceDat
     alarmState: boolean;
     alarmMessage: string;
     VEDirectData: VEDirectData;
-    constructor(VEDirectRawData: any);
+    constructor(VEDirectRawData: VEDirectData, deviceId: string, deviceVEAdapterSN: string);
 }
-export declare class VEDirectPnP_MPPTDeviceData implements IVEDirectPnP_DeviceData {
+export declare class MPPTDeviceData implements VEDirectPnPDeviceData {
     deviceType: string;
     deviceName: string;
+    deviceId: string;
     deviceSN: string;
+    deviceVEAdapterSN: string;
     deviceFirmwareVersion: number;
     batteryVoltage: number;
     batteryCurrent: number;
@@ -72,5 +82,5 @@ export declare class VEDirectPnP_MPPTDeviceData implements IVEDirectPnP_DeviceDa
     offReasonMessage: string;
     daySequenceNumber: number;
     VEDirectData: VEDirectData;
-    constructor(VEDirectRawData: any);
+    constructor(VEDirectRawData: VEDirectData, deviceId: string, deviceVEAdapterSN: string);
 }
