@@ -46,6 +46,8 @@ export class BMVDeviceData implements VEDirectPnPDeviceData {
     batteryMidPointVoltage: number;
     batteryMidPointDeviation: number;
     batteryCurrent: number;
+    batteryChargingCurrent: number;
+    batteryDischargingCurrent: number;
     batteryPercentage: number;
     batteryInstantaneousPower: number;
     batteryTemperature: number;
@@ -82,6 +84,8 @@ export class BMVDeviceData implements VEDirectPnPDeviceData {
         this.batteryAuxVoltage = getNullableNumber(data.VS) / 1000; //mV -> V
         this.batteryVoltage = getNullableNumber(data.V) / 1000; //mV -> V
         this.batteryCurrent = getNullableNumber(data.I) / 1000; //mA -> A
+        this.batteryChargingCurrent = this.batteryCurrent > 0 ? this.batteryCurrent : 0;
+        this.batteryDischargingCurrent = this.batteryCurrent < 0 ? Math.abs(this.batteryCurrent) : 0;
         this.batteryPercentage = getNullableNumber(data.SOC) / 10;
         this.batteryInstantaneousPower = getNullableNumber(data.P) / 1000;
         this.batteryTemperature = getNullableNumber(data.T); //Celsius

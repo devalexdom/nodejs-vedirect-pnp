@@ -260,7 +260,7 @@ export default class VEDirectPnP {
       const chargerDeviceId = this.getChargersData()[0]?.deviceId ?? null;
       newDeviceRelations.mainChargerDeviceId = chargerDeviceId;
     }
-
+    this.#deviceRelations = newDeviceRelations;
     this.#flags = { ... this.#flags, deviceRelationsSet: true };
   }
 

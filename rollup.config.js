@@ -11,7 +11,7 @@ export default [
         ],
         plugins: [
             typescript({ useTsconfigDeclarationDir: true }),
-            babel({ extensions: ['.ts'] }),
+            /*babel({ extensions: ['.ts'] }),*/
         ],
     },
 

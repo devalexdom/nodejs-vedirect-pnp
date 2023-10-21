@@ -32,6 +32,8 @@ export declare class BMVDeviceData implements VEDirectPnPDeviceData {
     batteryMidPointVoltage: number;
     batteryMidPointDeviation: number;
     batteryCurrent: number;
+    batteryChargingCurrent: number;
+    batteryDischargingCurrent: number;
     batteryPercentage: number;
     batteryInstantaneousPower: number;
     batteryTemperature: number;
